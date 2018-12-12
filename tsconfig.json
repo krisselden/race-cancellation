@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "declaration": true,
+    "sourceMap": true,
+    "module": "es2015",
+    "target": "es2017",
+    "rootDir": "src",
+    "outDir": "dist",
+    "lib": ["scripthost", "es2017"],
+    "typeRoots": []
+  },
+  "files": ["src/index.ts"]
+}

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "allowJs": true,
+    "target": "es2017",
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "types": ["node", "qunit"]
+  },
+  "include": ["*.js"]
+}

@@ -1,0 +1,15 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "arrow-parens": false,
+    "trailing-comma": {
+      "options": {
+        "esSpecCompliant": true
+      }
+    },
+    "no-floating-promises": true
+  },
+  "rulesDirectory": []
+}
