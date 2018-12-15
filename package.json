@@ -14,7 +14,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "prepare": "tsc && rollup -c",
-    "test": "nyc qunit tests && tslint -p tsconfig.json && tsc -p tests/tsconfig.json"
+    "test": "yarn link && yarn link race-cancellation && tslint -p tsconfig.json && tsc -p tests/tsconfig.json && nyc qunit tests"
   },
   "devDependencies": {
     "@types/node": "^10.12.12",

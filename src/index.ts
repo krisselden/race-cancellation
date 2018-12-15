@@ -1,11 +1,11 @@
-export { makeRace } from "./make-race";
-export { combineRace } from "./combine-race";
-export { makeRaceAndCancel } from "./make-race-and-cancel";
-export { runTask } from "./run-task";
+export { default as raceCancellation } from "./race-cancellation";
+export { default as cancellableRace } from "./cancellable-race";
+export { default as combineRace } from "./combine-race";
 export {
+  default as cancellationError,
   isCancellationError,
-  makeCancellationError,
-  defaultThrowCancellationError,
-} from "./errors";
-
+} from "./cancellation-error";
+export { default as run } from "./run";
+export { default as sleep } from "./sleep";
+export { default as withTimeout } from "./with-timeout";
 export * from "../interfaces";

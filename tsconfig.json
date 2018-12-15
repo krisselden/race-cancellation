@@ -7,8 +7,14 @@
     "target": "es2017",
     "rootDir": "src",
     "outDir": "dist",
-    "lib": ["scripthost", "es2017"],
+    "lib": [
+      "scripthost",
+      "es2017"
+    ],
+    "types": [],
     "typeRoots": []
   },
-  "files": ["src/index.ts"]
+  "files": [
+    "src/index.ts"
+  ]
 }

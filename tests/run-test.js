@@ -1,22 +1,21 @@
 // @ts-check
-const { runTask } = require("race-cancellation");
+const { run } = require("race-cancellation");
 
 /**
- * @typedef {import("race-cancellation").RaceCancellation} RaceCancellation
+ * @typedef {import("race-cancellation").Race} Race
  */
-
-QUnit.module("runTask", () => {
+QUnit.module("run", () => {
   QUnit.test("resolves with the result of the task", async assert => {
     const expected = { result: "result" };
 
-    const actual = await runTask(async () => expected);
+    const actual = await run(async () => expected);
 
     assert.strictEqual(actual, expected);
   });
 
   QUnit.test("rejects if task function rejects", async assert => {
     try {
-      await runTask(async () => {
+      await run(async () => {
         throw Error("some error");
       });
       /* istanbul ignore next */
@@ -30,7 +29,7 @@ QUnit.module("runTask", () => {
     "subtask is canceled if short-circuited Promise.all",
     async assert => {
       /**
-       * @param {RaceCancellation} raceCancel
+       * @param {Race} raceCancel
        */
       async function cancellableSubtask(raceCancel) {
         try {
@@ -51,7 +50,7 @@ QUnit.module("runTask", () => {
 
       try {
         assert.step(`await runTask`);
-        await runTask(async raceExit => {
+        await run(async raceExit => {
           assert.step(`task: await all`);
 
           await Promise.all([

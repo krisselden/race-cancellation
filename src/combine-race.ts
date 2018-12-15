@@ -1,8 +1,8 @@
-import { RaceCancellation } from "../interfaces";
+import { Race } from "../interfaces";
 
-export function combineRace(
-  a: RaceCancellation,
-  b: RaceCancellation
-): RaceCancellation {
-  return async task => a(() => b(task));
+export default function combineRace(
+  outer: Race | undefined,
+  inner: Race
+): Race {
+  return outer === undefined ? inner : task => outer(() => inner(task));
 }
