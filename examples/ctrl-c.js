@@ -7,18 +7,16 @@ const {
 
 /** @typedef {import("race-cancellation").Race} Race */
 
-const throwInterrupt = () => {
+const [raceInterrupt, onInterrupt] = cancellableRace(() => {
   throw cancellationError("SIGINT");
-};
-
-const [raceInterrupt, onInterrupt] = cancellableRace(throwInterrupt);
+});
 
 process.on("SIGINT", onInterrupt);
 
 run(main, raceInterrupt);
 
 /**
- * main cancellable async task
+ * cancellable async main with graceful termination on cancel.
  * @param {Race} raceCancellation
  */
 async function main(raceCancellation) {
@@ -37,7 +35,7 @@ async function main(raceCancellation) {
 }
 
 /**
- * main cancellable async work task
+ * cancellable async work task
  * @param {(i: number, t: number) => void} progress
  * @param {Race} raceCancellation
  */
