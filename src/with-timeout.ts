@@ -1,8 +1,7 @@
 import { CancellableTask, TimeoutHost } from "../interfaces";
-import combineRace from "./combine-race";
-import raceCancellation from "./race-cancellation";
 import sleep from "./sleep";
 import timeoutError from "./timeout-error";
+import withCancellation from "./with-cancellation";
 
 const throwTimedOut = () => {
   throw timeoutError();
@@ -16,10 +15,10 @@ const throwTimedOut = () => {
  * the race.
  *
  * ```js
- * async function parentTask(outerRaceCancel) {
- *   const result = await run(
- *     withTimeout(innerRaceCancel => childTask(innerRaceCancel), 4000),
- *     outerRaceCancel
+ * async function parentTask(outerRaceCancellation) {
+ *   return await run(
+ *     withTimeout(innerRaceCancellation => childTask(innerRaceCancellation), 4000),
+ *     outerRaceCancellation
  *   );
  * }
  * ```
@@ -33,9 +32,9 @@ export default function withTimeout<Result>(
   milliseconds: number,
   timeoutHost?: TimeoutHost
 ): CancellableTask<Result> {
-  return outerRace => {
-    const cancellation = () => sleep(milliseconds, outerRace, timeoutHost);
-    const raceTimeout = raceCancellation(cancellation, throwTimedOut);
-    return task(combineRace(outerRace, raceTimeout));
-  };
+  return withCancellation(
+    task,
+    raceCancellation => sleep(milliseconds, raceCancellation, timeoutHost),
+    throwTimedOut
+  );
 }

@@ -1,8 +1,9 @@
-import { Race, TimeoutId } from "../interfaces";
+import { Race } from "../interfaces";
 import defaultTimeoutHost from "./default-timeout-host";
+import disposablePromise from "./disposable-promise";
 
 /**
- * Cancellable promise of a delay.
+ * Cancellable promise of a timeout.
  *
  * ```js
  * await sleep(1000, raceCancel);
@@ -13,19 +14,8 @@ export default async function sleep(
   raceCancel: Race,
   { setTimeout, clearTimeout } = defaultTimeoutHost
 ) {
-  let id: TimeoutId | undefined;
-  try {
-    const createTimeout = () =>
-      new Promise<void>(resolve => {
-        id = setTimeout(() => {
-          resolve();
-          id = undefined;
-        }, ms);
-      });
-    return await raceCancel(createTimeout);
-  } finally {
-    if (id !== undefined) {
-      clearTimeout(id);
-    }
-  }
+  return disposablePromise<void>(resolve => {
+    const id = setTimeout(resolve, ms);
+    return () => clearTimeout(id);
+  }, raceCancel);
 }

@@ -6,12 +6,6 @@ with a pattern that solves a number of issues with cancellation of promises.
 The pattern is a cancellable async function takes a function that will build
 the cancellation race on demand.
 
-```
-async function readFile(path, raceCancellation) {
-  return await raceCancellation(() => doReadFile(path));
-}
-```
-
 ## Constraints
 
 - Composable
