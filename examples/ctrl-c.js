@@ -2,33 +2,28 @@ const {
   cancellableRace,
   cancellationError,
   disposablePromise,
-  run,
 } = require("race-cancellation");
 
 /** @typedef {import("race-cancellation").Race} Race */
 
-// cancellableRace returns a [raceFunc, cancelFunc]
-const [raceInterrupt, onInterrupt] = cancellableRace(() => {
+const [raceCancellation, cancel] = cancellableRace(() => {
   throw cancellationError("SIGINT");
 });
 
-process.on("SIGINT", onInterrupt);
+process.on("SIGINT", cancel);
 
-// `run` ensures raceCancellation passed to the async function
-// will cancel losing promise chains due to short-circuiting
-// in `Promise.all` or `Promise.race`.
-run(main, raceInterrupt);
+main();
 
 /**
  * Cancellable async main with graceful termination on cancel.
  * @param {Race} raceCancellation
  */
-async function main(raceCancellation) {
+async function main() {
   console.log("main started");
   try {
     const result = await doSomeAsyncTask((step, total) => {
       console.log(`main progress: ${step} of ${total}`);
-    }, raceCancellation);
+    });
     console.log(`main done: ${result}`);
   } catch (e) {
     console.error(e.stack);
@@ -45,10 +40,10 @@ async function main(raceCancellation) {
  * @param {(i: number, t: number) => void} progress
  * @param {Race} raceCancellation
  */
-async function doSomeAsyncTask(progress, raceCancellation) {
+async function doSomeAsyncTask(progress) {
   try {
     for (let i = 0; i < 8; i++) {
-      await doRealAsyncStep(raceCancellation);
+      await doRealAsyncStep();
       progress(i + 1, 8);
     }
   } catch (e) {
@@ -60,7 +55,7 @@ async function doSomeAsyncTask(progress, raceCancellation) {
 /**
  * @param {Race} raceCancellation
  */
-function doRealAsyncStep(raceCancellation) {
+function doRealAsyncStep() {
   // `disposablePromise` is helper real async to
   // ensure cleanup on cancellation
   return disposablePromise(resolve => {
