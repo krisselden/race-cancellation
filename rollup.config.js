@@ -1,11 +1,14 @@
 import sourcemaps from "rollup-plugin-sourcemaps";
 
 export default {
-  input: 'dist/index.js',
+  input: "dist/index.js",
   plugins: [sourcemaps()],
-  output: [{
-    file: 'dist/index.cjs.js',
-    format: "cjs",
-    sourcemap: true
-  }]
-}
+  output: [
+    {
+      file: "dist/index.umd.js",
+      format: "umd",
+      name: "RaceCancellation",
+      sourcemap: true,
+    },
+  ],
+};

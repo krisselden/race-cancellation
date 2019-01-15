@@ -1,6 +1,8 @@
 export type CancellationError = Error & { isCancellationError: true };
 
-export default function cancellationError(reason = "cancelled"): CancellationError {
+export default function cancellationError(
+  reason = "cancelled"
+): CancellationError {
   const error = new Error(reason) as CancellationError;
   error.isCancellationError = true;
   return error;
