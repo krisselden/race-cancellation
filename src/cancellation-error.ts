@@ -1,11 +1,10 @@
-const CANCELLATION_SET = new WeakSet();
+export type CancellationError = Error & { isCancellationError: true };
 
-export default function cancellationError(reason: string) {
+export default function cancellationError(reason = "cancelled"): CancellationError {
   const error = new Error(reason);
-  CANCELLATION_SET.add(error);
-  return error;
+  return Object.assign(error, { isCancellationError: true as true });
 }
 
-export function isCancellationError(error: Error) {
-  return CANCELLATION_SET.has(error);
+export function isCancellationError(error: any): error is CancellationError {
+  return error !== null && typeof error === "object" && error.isCancellationError === true;
 }

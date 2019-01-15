@@ -1,13 +1,12 @@
-import cancellationError from "./cancellation-error";
+import cancellationError, { CancellationError } from "./cancellation-error";
 
-const TIMEOUT_ERROR_SET = new WeakSet();
+export type TimeoutError = CancellationError & { isTimeoutError: true };
 
-export function isTimeoutError(error: Error) {
-  return TIMEOUT_ERROR_SET.has(error);
+export default function timeoutError(reason = "timed out"): TimeoutError {
+  const error = cancellationError(reason);
+  return Object.assign(error, { isTimeoutError: true as true });
 }
 
-export default function timeoutError() {
-  const error = cancellationError("timed-out");
-  TIMEOUT_ERROR_SET.add(error);
-  throw error;
+export function isTimeoutError(error: any): error is TimeoutError {
+  return error !== null && typeof error === "object" && error.isTimeoutError === true;
 }
