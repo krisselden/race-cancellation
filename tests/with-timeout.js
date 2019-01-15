@@ -48,6 +48,40 @@ QUnit.module("run withTimeout", () => {
       `error: Error: timed-out`
     ]);
   });
+
+  QUnit.test("cancel before", async (assert) => {
+    const { runTest, cancel } = createTest(
+      step => assert.step(step)
+    );
+
+    cancel();
+
+    await runTest(() => {
+      // never resolve
+    });
+
+    assert.verifySteps([
+      "await",
+      "error: outer race cancelled"
+    ]);
+  });
+
+  QUnit.test("cancel after", async (assert) => {
+    const { runTest, cancel } = createTest(
+      step => assert.step(step)
+    );
+
+    await runTest(() => {
+      cancel();
+      // never resolve task
+    });
+
+    assert.verifySteps([
+      "await",
+      "task",
+      "error: outer race cancelled"
+    ]);
+  });
 });
 
 /**

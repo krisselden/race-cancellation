@@ -1,14 +1,14 @@
 // @ts-check
 const { combineRace, cancellableRace } = require("race-cancellation");
 
-QUnit.module("combineRace and cancellableRace", () => {
+QUnit.module("combineRace", () => {
   QUnit.test("task success", async (assert) => {
-    const { run, cancelA, cancelB } = createTest(
+    const { runTest, cancelA, cancelB } = createTest(
       step => assert.step(step)
     );
 
     const expected = new Date();
-    await run(resolve => resolve(expected));
+    await runTest(resolve => resolve(expected));
 
     cancelA();
     cancelB();
@@ -23,12 +23,12 @@ QUnit.module("combineRace and cancellableRace", () => {
   });
 
   QUnit.test("task error", async (assert) => {
-    const { run, cancelA, cancelB } = createTest(
+    const { runTest, cancelA, cancelB } = createTest(
       step => assert.step(step)
     );
 
     const expected = new Date();
-    await run((_, reject) => reject(expected));
+    await runTest((_, reject) => reject(expected));
 
     cancelA();
     cancelB();
@@ -43,13 +43,13 @@ QUnit.module("combineRace and cancellableRace", () => {
   });
 
   QUnit.test("cancel A before race", async (assert) => {
-    const { run, cancelA } = createTest(
+    const { runTest, cancelA } = createTest(
       step => assert.step(step)
     );
 
     cancelA();
 
-    await run();
+    await runTest();
 
     assert.verifySteps([
       "await",
@@ -59,21 +59,14 @@ QUnit.module("combineRace and cancellableRace", () => {
   });
 
   QUnit.test("cancel A after race", async (assert) => {
-    const { run, cancelA } = createTest(
+    const { runTest, cancelA } = createTest(
       step => assert.step(step)
     );
 
-    let runPromise;
-
-    let taskPromise = new Promise(resolve => {
-      runPromise = run(resolve);
+    await runTest(() => {
+      cancelA();
+      // never resolve task
     });
-
-    await taskPromise;
-
-    cancelA();
-
-    await runPromise;
 
     assert.verifySteps([
       "await",
@@ -85,13 +78,13 @@ QUnit.module("combineRace and cancellableRace", () => {
   });
 
   QUnit.test("cancel B before race", async (assert) => {
-    const { run, cancelB } = createTest(
+    const { runTest, cancelB } = createTest(
       step => assert.step(step)
     );
 
     cancelB();
 
-    await run();
+    await runTest();
 
     assert.verifySteps([
       "await",
@@ -102,21 +95,14 @@ QUnit.module("combineRace and cancellableRace", () => {
   });
 
   QUnit.test("cancel B after race", async (assert) => {
-    const { run, cancelB } = createTest(
+    const { runTest, cancelB } = createTest(
       step => assert.step(step)
     );
 
-    let runPromise;
-
-    let taskPromise = new Promise(resolve => {
-      runPromise = run(resolve);
+    await runTest(() => {
+      cancelB();
+      // never resolve task
     });
-
-    await taskPromise;
-
-    cancelB();
-
-    await runPromise;
 
     assert.verifySteps([
       "await",
@@ -128,13 +114,13 @@ QUnit.module("combineRace and cancellableRace", () => {
   });
 
   QUnit.test("tied with resolve", async (assert) => {
-    const { run, cancelA, cancelB } = createTest(
+    const { runTest, cancelA, cancelB } = createTest(
       step => assert.step(step)
     );
 
     const expected = new Date();
 
-    await run((resolve) => {
+    await runTest((resolve) => {
       // tie should go to result
       cancelA();
       cancelB();
@@ -151,7 +137,7 @@ QUnit.module("combineRace and cancellableRace", () => {
   });
 
   QUnit.test("tied with reject", async (assert) => {
-    const { run, cancelA, cancelB } = createTest(
+    const { runTest: run, cancelA, cancelB } = createTest(
       step => assert.step(step)
     );
 
@@ -190,7 +176,7 @@ function createTest(step) {
   /**
    * @param {(resolve: (result: any) => void, reject: (reason?: any) => void) => void} taskCallback
    */
-  async function run(taskCallback = () => {
+  async function runTest(taskCallback = () => {
     throw Error("task was run unexpectedly")
   }) {
     const combinedRace = combineRace(task => {
@@ -215,6 +201,6 @@ function createTest(step) {
   return {
     cancelA,
     cancelB,
-    run,
+    runTest: runTest,
   }
 }
