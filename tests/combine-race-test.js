@@ -2,169 +2,187 @@
 const { combineRace, cancellableRace } = require("race-cancellation");
 
 QUnit.module("combineRace", () => {
-  QUnit.test("task success", async (assert) => {
-    const { runTest, cancelA, cancelB } = createTest(
-      step => assert.step(step)
-    );
+  QUnit.test("task success", async assert => {
+    const { runTest, cancelA, cancelB } = createTest(assert);
 
     const expected = new Date();
-    await runTest(resolve => resolve(expected));
+    await runTest({
+      taskStart(deferred) {
+        deferred.resolve(expected);
+      },
+    });
 
     cancelA();
     cancelB();
 
     assert.verifySteps([
-      "await",
-      "race A",
-      "race B",
-      "task",
-      `return: ${expected}`
+      "begin await",
+      "race A started",
+      "race B started",
+      "task started",
+      `await returned: ${expected}`,
     ]);
   });
 
-  QUnit.test("task error", async (assert) => {
-    const { runTest, cancelA, cancelB } = createTest(
-      step => assert.step(step)
-    );
+  QUnit.test("task error", async assert => {
+    const { runTest, cancelA, cancelB } = createTest(assert);
 
     const expected = new Date();
-    await runTest((_, reject) => reject(expected));
+    await runTest({
+      taskStart(deferred) {
+        deferred.reject(expected);
+      },
+    });
 
     cancelA();
     cancelB();
 
     assert.verifySteps([
-      "await",
-      "race A",
-      "race B",
-      "task",
-      `error: ${expected}`
+      "begin await",
+      "race A started",
+      "race B started",
+      "task started",
+      `await threw: ${expected}`,
     ]);
   });
 
-  QUnit.test("cancel A before race", async (assert) => {
-    const { runTest, cancelA } = createTest(
-      step => assert.step(step)
-    );
+  QUnit.test("cancel A before race", async assert => {
+    const { runTest, cancelA } = createTest(assert);
 
     cancelA();
 
-    await runTest();
-
-    assert.verifySteps([
-      "await",
-      "race A",
-      "error: A cancelled"
-    ]);
-  });
-
-  QUnit.test("cancel A after race", async (assert) => {
-    const { runTest, cancelA } = createTest(
-      step => assert.step(step)
-    );
-
-    await runTest(() => {
-      cancelA();
-      // never resolve task
+    await runTest({
+      taskStart() {
+        assert.ok(false, "task should not start");
+      },
     });
 
     assert.verifySteps([
-      "await",
-      "race A",
-      "race B",
-      "task",
-      "error: A cancelled"
+      "begin await",
+      "race A started",
+      "await threw: A cancelled",
     ]);
   });
 
-  QUnit.test("cancel B before race", async (assert) => {
-    const { runTest, cancelB } = createTest(
-      step => assert.step(step)
-    );
+  QUnit.test("cancel A after race", async assert => {
+    const { runTest, cancelA } = createTest(assert);
+
+    await runTest({
+      taskStart() {
+        cancelA();
+        // never resolve task
+      },
+    });
+
+    assert.verifySteps([
+      "begin await",
+      "race A started",
+      "race B started",
+      "task started",
+      "await threw: A cancelled",
+    ]);
+  });
+
+  QUnit.test("cancel B before race", async assert => {
+    const { runTest, cancelB } = createTest(assert);
 
     cancelB();
 
-    await runTest();
-
-    assert.verifySteps([
-      "await",
-      "race A",
-      "race B",
-      "error: B cancelled"
-    ]);
-  });
-
-  QUnit.test("cancel B after race", async (assert) => {
-    const { runTest, cancelB } = createTest(
-      step => assert.step(step)
-    );
-
-    await runTest(() => {
-      cancelB();
-      // never resolve task
+    await runTest({
+      taskStart() {
+        assert.ok(false, "task should not start");
+      },
     });
 
     assert.verifySteps([
-      "await",
-      "race A",
-      "race B",
-      "task",
-      "error: B cancelled"
+      "begin await",
+      "race A started",
+      "race B started",
+      "await threw: B cancelled",
     ]);
   });
 
-  QUnit.test("tied with resolve", async (assert) => {
-    const { runTest, cancelA, cancelB } = createTest(
-      step => assert.step(step)
-    );
+  QUnit.test("cancel B after race", async assert => {
+    const { runTest, cancelB } = createTest(assert);
+
+    await runTest({
+      taskStart() {
+        cancelB();
+        // never resolve task
+      },
+    });
+
+    assert.verifySteps([
+      "begin await",
+      "race A started",
+      "race B started",
+      "task started",
+      "await threw: B cancelled",
+    ]);
+  });
+
+  QUnit.test("tied with resolve", async assert => {
+    const { runTest, cancelA, cancelB } = createTest(assert);
 
     const expected = new Date();
 
-    await runTest((resolve) => {
-      // tie should go to result
-      cancelA();
-      cancelB();
-      resolve(expected);
+    await runTest({
+      taskStart(deferred) {
+        // tie should go to result
+        cancelA();
+        cancelB();
+        deferred.resolve(expected);
+      },
     });
 
     assert.verifySteps([
-      "await",
-      "race A",
-      "race B",
-      "task",
-      `return: ${expected}`
+      "begin await",
+      "race A started",
+      "race B started",
+      "task started",
+      `await returned: ${expected}`,
     ]);
   });
 
-  QUnit.test("tied with reject", async (assert) => {
-    const { runTest: run, cancelA, cancelB } = createTest(
-      step => assert.step(step)
-    );
+  QUnit.test("tied with reject", async assert => {
+    const { runTest, cancelA, cancelB } = createTest(assert);
 
     const expected = new Date();
 
-    await run((_, reject) => {
-      // tie should go to result
-      cancelA();
-      cancelB();
-      reject(expected);
+    await runTest({
+      taskStart(deferred) {
+        // tie should go to result
+        cancelA();
+        cancelB();
+        deferred.reject(expected);
+      },
     });
 
     assert.verifySteps([
-      "await",
-      "race A",
-      "race B",
-      "task",
-      `error: ${expected}`
+      "begin await",
+      "race A started",
+      "race B started",
+      "task started",
+      `await threw: ${expected}`,
     ]);
   });
-
 });
 
 /**
- * @param {(label: string) => void} step
+ * @typedef {Object} Deferred
+ * @property {(result: any) => void} resolve
+ * @property {(reason?: any) => void} reject
  */
-function createTest(step) {
+
+/**
+ * @typedef {Object} TestDelegate
+ * @property {(taskDeferred: Deferred) => void} taskStart
+ */
+
+/**
+ * @param {Assert} assert
+ */
+function createTest(assert) {
   const [raceA, cancelA] = cancellableRace(() => {
     throw "A cancelled";
   });
@@ -174,27 +192,30 @@ function createTest(step) {
   });
 
   /**
-   * @param {(resolve: (result: any) => void, reject: (reason?: any) => void) => void} taskCallback
+   * @param {TestDelegate} delegate
    */
-  async function runTest(taskCallback = () => {
-    throw Error("task was run unexpectedly")
-  }) {
-    const combinedRace = combineRace(task => {
-      step("race A");
-      return raceA(task);
-    }, task => {
-      step("race B");
-      return raceB(task);
-    });
+  async function runTest(delegate) {
+    const combinedRace = combineRace(
+      task => {
+        assert.step("race A started");
+        return raceA(task);
+      },
+      task => {
+        assert.step("race B started");
+        return raceB(task);
+      }
+    );
     try {
-      step("await");
+      assert.step("begin await");
       let res = await combinedRace(() => {
-        step("task");
-        return new Promise(taskCallback);
+        assert.step("task started");
+        return new Promise((resolve, reject) => {
+          delegate.taskStart({ resolve, reject });
+        });
       });
-      step(`return: ${res}`);
+      assert.step(`await returned: ${res}`);
     } catch (e) {
-      step(`error: ${e}`);
+      assert.step(`await threw: ${e}`);
     }
   }
 
@@ -202,5 +223,5 @@ function createTest(step) {
     cancelA,
     cancelB,
     runTest: runTest,
-  }
+  };
 }
