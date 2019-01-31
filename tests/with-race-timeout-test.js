@@ -1,7 +1,7 @@
 // @ts-check
-const { run, withTimeout, cancellableRace } = require("race-cancellation");
+const { withRaceTimeout, cancellableRace } = require("race-cancellation");
 
-QUnit.module("run withTimeout", () => {
+QUnit.module("withRaceTimeout", () => {
   QUnit.test("task success", async assert => {
     const { runTest } = createTimeoutTest(assert);
 
@@ -117,8 +117,7 @@ function createTimeoutTest(assert) {
 
     try {
       assert.step("begin await");
-      let res = await run(
-        withTimeout(innerRace => innerRace(task), 10),
+      let res = await withRaceTimeout(innerRace => innerRace(task), 10)(
         raceCancellation
       );
       assert.step(`await returned: ${res}`);
