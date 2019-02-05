@@ -4,11 +4,16 @@ export {
   isCancellationError,
 } from "./cancellation-error";
 export { default as combineRace } from "./combine-race";
+export { default as deferred } from "./deferred";
 export { default as disposablePromise } from "./disposable-promise";
-export { default as raceCancellation } from "./race-cancellation";
-export { default as run } from "./run";
+export { default as createRaceCancellation } from "./race-cancellation";
+export {
+  default as raceCancellationFromTask,
+} from "./race-cancellation-from-task";
+export { default as raceNoop } from "./race-noop";
 export { default as sleep } from "./sleep";
 export { default as timeoutError, isTimeoutError } from "./timeout-error";
-export { default as withCancellation } from "./with-cancellation";
-export { default as withTimeout } from "./with-timeout";
+export { default as withRaceCancellation } from "./with-race-cancellation";
+export { default as withRaceSettled } from "./with-race-settled";
+export { default as withRaceTimeout } from "./with-race-timeout";
 export * from "../interfaces";

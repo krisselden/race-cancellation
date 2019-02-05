@@ -1,7 +1,15 @@
 {
   "name": "race-cancellation",
-  "version": "0.2.0",
-  "description": "a promise cancellation pattern for async/wait code.",
+  "version": "0.3.0",
+  "description": "Promise cancellation pattern and utilities for async/await code.",
+  "keywords": [
+    "async",
+    "cancel",
+    "cancellable",
+    "cancellation",
+    "promise",
+    "race"
+  ],
   "license": "BSD-2-Clause",
   "author": "Kris Selden",
   "files": [

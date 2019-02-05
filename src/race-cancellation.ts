@@ -1,73 +1,55 @@
-import { Race, Task } from "../interfaces";
+import {
+  CreateCancellationError,
+  IsCancelled,
+  Race,
+  Task,
+  Thunk,
+} from "../interfaces";
 import cancellationError from "./cancellation-error";
 
-const defaultThrowCancellationError = () => {
-  throw cancellationError("cancelled");
-};
-
-export default function raceCancellation(
-  cancellation: Task<void> | Promise<void>,
-  throwCancellationError = defaultThrowCancellationError,
-  isCancelled?: () => boolean
+/**
+ * Create a race cancellation function.
+ *
+ * This function is intended to be used with `deferred`, a higher level
+ * version of this is `raceCancellationFromTask` for creating one from
+ * from a cancellation task.
+ *
+ * @param cancellation a function that materializes the cancellation promise
+ *                     it should return the same promise if called more than once
+ * @param isCancelled a function that returns if we are cancelled, used to avoid starting
+ *                    a raced task if we are already cancelled.
+ * @param createCancellationError a function that creates the cancellation error to throw
+ */
+export default function createRaceCancellation(
+  cancellation: Thunk<Promise<void>>,
+  isCancelled: IsCancelled,
+  createCancellationError: CreateCancellationError = cancellationError
 ): Race {
-  if (isCancelled === undefined) {
-    return createRaceCancellationWithDefaultIsCancelled(
-      cancellation,
-      throwCancellationError
-    );
+  return task => raceCancellation(cancellationWithThrow, isCancelled, task);
+
+  function cancellationWithThrow() {
+    return cancellation().then(throwError);
   }
 
-  let cancellationPromise: Promise<void> | undefined;
-  return <Result>(task: Task<Result> | Promise<Result>) => {
-    let taskPromise: Promise<Result> | undefined;
-
-    if (typeof task === "function") {
-      // if we are already cancelled, avoid starting task
-      if (!isCancelled()) {
-        taskPromise = task();
-      }
-    } else {
-      taskPromise = task;
-    }
-
-    // start cancellation if not started
-    if (cancellationPromise === undefined) {
-      if (typeof cancellation === "function") {
-        cancellationPromise = cancellation();
-      } else {
-        cancellationPromise = cancellation;
-      }
-    }
-
-    // if task was not started because already cancelled
-    if (taskPromise === undefined) {
-      // just return a Promise<never> from the cancellationPromise
-      return cancellationPromise.then(throwCancellationError);
-    }
-
-    return Promise.race<Result, never>([
-      taskPromise,
-      cancellationPromise.then(throwCancellationError),
-    ]);
-  };
+  function throwError(): never {
+    throw createCancellationError();
+  }
 }
 
-function createRaceCancellationWithDefaultIsCancelled(
-  cancellation: Task<void> | Promise<void>,
-  throwCancellationError: () => never
-): Race {
-  let cancelled = false;
-  return raceCancellation(
-    async () => {
-      try {
-        await (typeof cancellation === "function"
-          ? cancellation()
-          : cancellation);
-      } finally {
-        cancelled = true;
-      }
-    },
-    throwCancellationError,
-    () => cancelled
-  );
+function raceCancellation<Result>(
+  cancellation: Thunk<Promise<never>>,
+  isCancelled: IsCancelled,
+  task: Task<Result> | Promise<Result>
+): Promise<Result> {
+  let result: Promise<Result>;
+  if (typeof task === "function") {
+    // avoid starting task if already cancelled
+    if (isCancelled()) {
+      return cancellation();
+    }
+    result = task();
+  } else {
+    result = task;
+  }
+  return Promise.race([result, cancellation()]);
 }

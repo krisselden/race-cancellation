@@ -1,8 +1,9 @@
-import { Dispose, Executor, Race } from "../interfaces";
+import { Dispose, Executor } from "../interfaces";
+import noop from "./race-noop";
 
 export default async function disposablePromise<Result>(
   executor: Executor<Result>,
-  raceCancellation: Race
+  raceCancellation = noop
 ) {
   let dispose: Dispose | undefined;
   try {

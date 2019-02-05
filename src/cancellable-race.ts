@@ -1,35 +1,19 @@
-import { CancellableRace } from "../interfaces";
-import raceCancellation from "./race-cancellation";
+import { CancellableRace, CreateCancellationError } from "../interfaces";
+import deferred from "./deferred";
+import createRaceCancellation from "./race-cancellation";
 
+/**
+ * Returns a tuple of a Race with a cancel function that cancels it.
+ * @param cancellationError optional function to create the cancellation error.
+ */
 export default function cancellableRace(
-  throwCancellationError?: () => never
+  cancellationError?: CreateCancellationError
 ): CancellableRace {
-  let cancelled = false;
-  let onCancel: (() => void) | undefined;
-  let promise: Promise<void> | undefined;
-  const lazyPromise = () => {
-    if (promise === undefined) {
-      if (cancelled) {
-        promise = Promise.resolve();
-      } else {
-        promise = new Promise(resolve => {
-          onCancel = resolve;
-        });
-      }
-    }
-    return promise;
-  };
-  const isCancelled = () => cancelled;
-  const race = raceCancellation(
-    lazyPromise,
-    throwCancellationError,
-    isCancelled
+  const [cancellation, isCancelled, cancel] = deferred();
+  const raceCancellation = createRaceCancellation(
+    cancellation,
+    isCancelled,
+    cancellationError
   );
-  const cancel = () => {
-    cancelled = true;
-    if (onCancel !== undefined) {
-      onCancel();
-    }
-  };
-  return [race, cancel];
+  return [raceCancellation, cancel];
 }
