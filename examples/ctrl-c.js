@@ -1,12 +1,10 @@
 const {
   cancellableRace,
-  cancellationError,
   disposablePromise,
+  throwIfCancelled,
 } = require("race-cancellation");
 
-const [raceCancellation, cancel] = cancellableRace(() => {
-  throw cancellationError("SIGINT");
-});
+const [raceCancellation, cancel] = cancellableRace();
 
 process.on("SIGINT", cancel);
 
@@ -36,15 +34,9 @@ async function main() {
  * @param {(i: number, t: number) => void} progress
  */
 async function myAsyncTask(progress) {
-  try {
-    for (let i = 0; i < 8; i++) {
-      await doRealAsyncStep();
-      progress(i + 1, 8);
-    }
-  } catch (e) {
-    // cancellation errors can be caught to add more context
-    // to the error about the task that was cancelled
-    throw new Error(`myAsyncTask failed: ${e.message}`);
+  for (let i = 0; i < 8; i++) {
+    await doRealAsyncStep();
+    progress(i + 1, 8);
   }
   return "some result";
 }
@@ -52,10 +44,12 @@ async function myAsyncTask(progress) {
 async function doRealAsyncStep() {
   // `disposablePromise` is helper for real async to
   // ensure cleanup on cancellation
-  await disposablePromise(resolve => {
-    const id = setTimeout(resolve, 1000);
-    return () => {
-      clearTimeout(id);
-    };
-  }, raceCancellation);
+  throwIfCancelled(
+    await disposablePromise(resolve => {
+      const id = setTimeout(resolve, 1000);
+      return () => {
+        clearTimeout(id);
+      };
+    }, raceCancellation)
+  );
 }

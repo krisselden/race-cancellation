@@ -1,13 +1,14 @@
-import { Task } from "../interfaces";
-
-export default function once<Result>(
-  task: Task<Result>
-): () => Promise<Result> {
-  let promise: Promise<Result> | undefined;
-  return () => {
-    if (promise === undefined) {
-      promise = task();
+import { Thunk, thunkBrand } from "./internal";
+export default function once<Result>(force: () => Result): Thunk<Result> {
+  let unforced = true;
+  let result: Result;
+  const thunk = (() => {
+    if (unforced) {
+      result = force();
+      unforced = false;
     }
-    return promise;
-  };
+    return result;
+  }) as Thunk<Result>;
+  thunk[thunkBrand] = true;
+  return thunk;
 }

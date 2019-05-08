@@ -1,6 +1,7 @@
-import defaultCreateTimeout from "./default-create-timeout";
-import disposablePromise from "./disposable-promise";
-import raceNoop from "./race-noop";
+import disposablePromise from "./disposablePromise";
+import { Cancellation } from "./interfaces";
+import newTimeoutDefault from "./newTimeoutDefault";
+import noopRaceCancellation from "./noopRaceCancellation";
 
 /**
  * Cancellable promise of a timeout.
@@ -13,17 +14,18 @@ import raceNoop from "./race-noop";
  * ```
  *
  * @param milliseconds timeout in milliseconds
- * @param raceCancellation a function to race the waiting for the
- *                         timeout against a cancellation promise
- * @param createTimeout defaults to setTimeout/clearTimeout, allows you to provide other host for testing
+ * @param raceCancellation a function to race the timeout promise against a
+ *                         cancellation.
+ * @param newTimeout defaults to setTimeout/clearTimeout
+ *                   allows you to provide other implementation for testing
  */
 export default async function sleep(
   milliseconds: number,
-  raceCancellation = raceNoop,
-  createTimeout = defaultCreateTimeout
-): Promise<void> {
+  raceCancellation = noopRaceCancellation,
+  newTimeout = newTimeoutDefault
+): Promise<void | Cancellation> {
   return disposablePromise<void>(
-    resolve => createTimeout(resolve, milliseconds),
+    resolve => newTimeout(resolve, milliseconds),
     raceCancellation
   );
 }

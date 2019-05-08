@@ -1,18 +1,14 @@
 import {
   CancellableTask,
-  CreateTimeout,
+  CancellationKind,
+  NewTimeout,
   OptionallyCancellableTask,
-} from "../interfaces";
+} from "./interfaces";
 import sleep from "./sleep";
-import timeoutError from "./timeout-error";
-import withCancellation from "./with-race-cancellation";
+import withRaceCancellationTask from "./withRaceCancellationTask";
 
 /**
  * Wrap a cancellable task with a timeout.
- *
- * Since the timeout is itself canceable this is intended to be used
- * with run() so that the timeout itself will be cancelled if it loses
- * the race.
  *
  * ```js
  * async function fetchWithTimeout(url, timeoutMs, raceCancellation) {
@@ -24,16 +20,19 @@ import withCancellation from "./with-race-cancellation";
  *
  * @param task a cancellable task
  * @param milliseconds timeout in miliseconds
- * @param createTimeout optional implementation of timeout creation for testing
+ * @param message optional cancellation message
+ * @param newTimeout optional implementation of timeout creation for testing
  */
 export default function withRaceTimeout<Result>(
   task: CancellableTask<Result>,
   milliseconds: number,
-  createTimeout?: CreateTimeout
+  message?: string,
+  newTimeout?: NewTimeout
 ): OptionallyCancellableTask<Result> {
-  return withCancellation(
+  return withRaceCancellationTask(
     task,
-    raceCancellation => sleep(milliseconds, raceCancellation, createTimeout),
-    timeoutError
+    raceCancellation => sleep(milliseconds, raceCancellation, newTimeout),
+    message || `task took longer than ${milliseconds}ms`,
+    CancellationKind.Timeout
   );
 }
