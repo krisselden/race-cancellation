@@ -1,10 +1,10 @@
-// @ts-check
 const { throwIfCancelled, withRaceSettled } = require("race-cancellation");
 
 /**
  * @typedef {import("race-cancellation").RaceCancellation} RaceCancellation
  */
-QUnit.module("run", () => {
+
+QUnit.module("withRaceSettled", () => {
   QUnit.test("resolves with the result of the task", async assert => {
     const expected = { result: "result" };
 
@@ -21,7 +21,6 @@ QUnit.module("run", () => {
     });
     try {
       await task();
-      /* istanbul ignore next */
       assert.ok(false, "did not reject with task error");
     } catch (e) {
       assert.equal(e.message, "some error");
@@ -45,7 +44,6 @@ QUnit.module("run", () => {
                 })
             )
           );
-          /* istanbul ignore next */
           assert.step("subtask: unreachable");
         } catch (e) {
           assert.step(`subtask: error: ${e}`);
@@ -61,7 +59,6 @@ QUnit.module("run", () => {
           Promise.reject(new Error("some error")),
           cancellableSubtask(raceExit),
         ]);
-        /* istanbul ignore next */
         assert.step(`task: unreachable`);
       });
 

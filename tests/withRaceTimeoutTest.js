@@ -1,4 +1,3 @@
-// @ts-check
 const {
   withRaceTimeout,
   cancellableRace,

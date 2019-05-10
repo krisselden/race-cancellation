@@ -1,11 +1,36 @@
-// @ts-check
 const {
   combineRaceCancellation,
   cancellableRace,
   throwIfCancelled,
 } = require("race-cancellation");
 
-QUnit.module("combineRace", () => {
+QUnit.module("combineRaceCancellation", () => {
+  QUnit.test("calling combine with a & b both undefined", async assert => {
+    const raceCancellation = combineRaceCancellation(undefined, undefined);
+    const expected = new Date();
+    const actual = await raceCancellation(() => Promise.resolve(expected));
+    assert.equal(actual, expected);
+  });
+
+  QUnit.test("calling combine with b as undefined", async assert => {
+    const raceCancellation = combineRaceCancellation(
+      task => Promise.resolve().then(task),
+      undefined
+    );
+    const expected = new Date();
+    const actual = await raceCancellation(() => Promise.resolve(expected));
+    assert.equal(actual, expected);
+  });
+
+  QUnit.test("calling combine with a as undefined", async assert => {
+    const raceCancellation = combineRaceCancellation(undefined, task =>
+      Promise.resolve().then(task)
+    );
+    const expected = new Date();
+    const actual = await raceCancellation(() => Promise.resolve(expected));
+    assert.equal(actual, expected);
+  });
+
   QUnit.test("task success", async assert => {
     const { runTest, cancelA, cancelB } = createTest(assert);
 
