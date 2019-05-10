@@ -1,8 +1,8 @@
 // @ts-check
-const { withRaceSettled } = require("race-cancellation");
+const { throwIfCancelled, withRaceSettled } = require("race-cancellation");
 
 /**
- * @typedef {import("race-cancellation").Race} Race
+ * @typedef {import("race-cancellation").RaceCancellation} RaceCancellation
  */
 QUnit.module("run", () => {
   QUnit.test("resolves with the result of the task", async assert => {
@@ -32,20 +32,23 @@ QUnit.module("run", () => {
     "subtask is canceled if short-circuited Promise.all",
     async assert => {
       /**
-       * @param {Race} raceCancel
+       * @param {RaceCancellation} raceCancel
        */
       async function cancellableSubtask(raceCancel) {
         try {
           assert.step("subtask: await raceCancel");
-          await raceCancel(
-            new Promise(() => {
-              // never resolving promise
-            })
+          throwIfCancelled(
+            await raceCancel(
+              () =>
+                new Promise(() => {
+                  // never resolving promise
+                })
+            )
           );
           /* istanbul ignore next */
           assert.step("subtask: unreachable");
         } catch (e) {
-          assert.step(`subtask: error: ${e.message}`);
+          assert.step(`subtask: error: ${e}`);
         } finally {
           assert.step("subtask: finally");
         }
@@ -66,7 +69,7 @@ QUnit.module("run", () => {
         assert.step(`await runTask`);
         await task();
       } catch (e) {
-        assert.step(`error: ${e.message}`);
+        assert.step(`error: ${e}`);
       }
 
       // raceExit should finish out pending
@@ -76,8 +79,8 @@ QUnit.module("run", () => {
         "await runTask",
         "task: await all",
         "subtask: await raceCancel",
-        "error: some error",
-        "subtask: error: short-circuited",
+        "error: Error: some error",
+        "subtask: error: ShortCircuitError: the task was short-circuited by another concurrent task winning a Promise.race or rejecting a Promise.all",
         "subtask: finally",
       ]);
     }

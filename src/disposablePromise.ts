@@ -1,5 +1,5 @@
-import { Dispose, Executor } from "../interfaces";
-import noop from "./race-noop";
+import { Dispose, Executor } from "./interfaces";
+import noop from "./noopRaceCancellation";
 
 export default async function disposablePromise<Result>(
   executor: Executor<Result>,

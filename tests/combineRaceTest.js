@@ -1,5 +1,9 @@
 // @ts-check
-const { combineRace, cancellableRace } = require("race-cancellation");
+const {
+  combineRaceCancellation,
+  cancellableRace,
+  throwIfCancelled,
+} = require("race-cancellation");
 
 QUnit.module("combineRace", () => {
   QUnit.test("task success", async assert => {
@@ -60,7 +64,7 @@ QUnit.module("combineRace", () => {
     assert.verifySteps([
       "begin await",
       "race A started",
-      "await threw: A cancelled",
+      "await threw: CancellationError: A cancelled",
     ]);
   });
 
@@ -79,7 +83,7 @@ QUnit.module("combineRace", () => {
       "race A started",
       "race B started",
       "task started",
-      "await threw: A cancelled",
+      "await threw: CancellationError: A cancelled",
     ]);
   });
 
@@ -98,7 +102,7 @@ QUnit.module("combineRace", () => {
       "begin await",
       "race A started",
       "race B started",
-      "await threw: B cancelled",
+      "await threw: CancellationError: B cancelled",
     ]);
   });
 
@@ -117,10 +121,18 @@ QUnit.module("combineRace", () => {
       "race A started",
       "race B started",
       "task started",
-      "await threw: B cancelled",
+      "await threw: CancellationError: B cancelled",
     ]);
   });
 
+  // these test ensure that raceCancellation implementation
+  // doesn't any more inbetween the Promise.race, this allows
+  // allows the task promise b's Promise.race() in `a(() => b(task))` combine
+  // to win in a's Promise.race.
+  //
+  // Promise.race([a, Promise.race([b, task])]) will combine to one race,
+  // but Promise.race([a,Promise.resolve().then(() => Promise.race([b, task]))])
+  // is not able to win a tie of them resolving at the same time.
   QUnit.test("tied with resolve", async assert => {
     const { runTest, cancelA, cancelB } = createTest(assert);
 
@@ -183,19 +195,15 @@ QUnit.module("combineRace", () => {
  * @param {Assert} assert
  */
 function createTest(assert) {
-  const [raceA, cancelA] = cancellableRace(() => {
-    throw "A cancelled";
-  });
+  const [raceA, cancelA] = cancellableRace();
 
-  const [raceB, cancelB] = cancellableRace(() => {
-    throw "B cancelled";
-  });
+  const [raceB, cancelB] = cancellableRace();
 
   /**
    * @param {TestDelegate} delegate
    */
   async function runTest(delegate) {
-    const combinedRace = combineRace(
+    const combinedRace = combineRaceCancellation(
       task => {
         assert.step("race A started");
         return raceA(task);
@@ -207,12 +215,14 @@ function createTest(assert) {
     );
     try {
       assert.step("begin await");
-      let res = await combinedRace(() => {
-        assert.step("task started");
-        return new Promise((resolve, reject) => {
-          delegate.taskStart({ resolve, reject });
-        });
-      });
+      let res = throwIfCancelled(
+        await combinedRace(() => {
+          assert.step("task started");
+          return new Promise((resolve, reject) => {
+            delegate.taskStart({ resolve, reject });
+          });
+        })
+      );
       assert.step(`await returned: ${res}`);
     } catch (e) {
       assert.step(`await threw: ${e}`);
@@ -220,8 +230,8 @@ function createTest(assert) {
   }
 
   return {
-    cancelA,
-    cancelB,
+    cancelA: () => cancelA("A cancelled"),
+    cancelB: () => cancelB("B cancelled"),
     runTest: runTest,
   };
 }

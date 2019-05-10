@@ -1,5 +1,9 @@
 // @ts-check
-const { withRaceTimeout, cancellableRace } = require("race-cancellation");
+const {
+  withRaceTimeout,
+  cancellableRace,
+  throwIfCancelled,
+} = require("race-cancellation");
 
 QUnit.module("withRaceTimeout", () => {
   QUnit.test("task success", async assert => {
@@ -48,7 +52,7 @@ QUnit.module("withRaceTimeout", () => {
     assert.verifySteps([
       "begin await",
       "task started",
-      "await threw: Error: timed out",
+      "await threw: TimeoutError: task took longer than 10ms",
     ]);
   });
 
@@ -64,7 +68,10 @@ QUnit.module("withRaceTimeout", () => {
       },
     });
 
-    assert.verifySteps(["begin await", "await threw: outer race cancelled"]);
+    assert.verifySteps([
+      "begin await",
+      "await threw: CancellationError: outer race cancelled",
+    ]);
   });
 
   QUnit.test("cancel after", async assert => {
@@ -80,7 +87,7 @@ QUnit.module("withRaceTimeout", () => {
     assert.verifySteps([
       "begin await",
       "task started",
-      "await threw: outer race cancelled",
+      "await threw: CancellationError: outer race cancelled",
     ]);
   });
 });
@@ -100,9 +107,7 @@ QUnit.module("withRaceTimeout", () => {
  * @param {Assert} assert
  */
 function createTimeoutTest(assert) {
-  const [raceCancellation, cancel] = cancellableRace(() => {
-    throw "outer race cancelled";
-  });
+  const [raceCancellation, cancel] = cancellableRace();
 
   /**
    * @param {TimeoutTestDelegate} delegate
@@ -115,10 +120,12 @@ function createTimeoutTest(assert) {
       });
     }
 
+    assert.step("begin await");
     try {
-      assert.step("begin await");
-      let res = await withRaceTimeout(innerRace => innerRace(task), 10)(
-        raceCancellation
+      const res = throwIfCancelled(
+        await withRaceTimeout(innerRace => innerRace(task), 10)(
+          raceCancellation
+        )
       );
       assert.step(`await returned: ${res}`);
     } catch (e) {
@@ -127,7 +134,7 @@ function createTimeoutTest(assert) {
   }
 
   return {
-    cancel,
+    cancel: () => cancel("outer race cancelled"),
     runTest,
   };
 }

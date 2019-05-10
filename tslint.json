@@ -9,7 +9,8 @@
         "esSpecCompliant": true
       }
     },
-    "no-floating-promises": true
+    "no-floating-promises": true,
+    "interface-name": false
   },
   "rulesDirectory": []
 }
