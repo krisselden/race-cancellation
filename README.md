@@ -1,5 +1,6 @@
 # race-cancellation
 [![Build Status](https://travis-ci.org/krisselden/race-cancellation.svg?branch=master)](https://travis-ci.org/krisselden/race-cancellation)
+[![Coverage Status](https://coveralls.io/repos/github/krisselden/race-cancellation/badge.svg?branch=master)](https://coveralls.io/github/krisselden/race-cancellation?branch=master)
 
 This is a library with utils to implement a cancellable async function
 with a pattern that solves a number of issues with cancellation of promises.
