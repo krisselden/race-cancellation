@@ -5,3 +5,7 @@ node_js:
   - "stable"
 after_script:
   - "cat ./coverage/lcov.info | yarn coveralls"
+branches:
+  only:
+    - master
+    - /^v\d+\.\d+\.\d+/

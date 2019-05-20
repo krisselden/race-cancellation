@@ -36,7 +36,7 @@ export interface Cancellation<Kind extends string = string> {
 export type Complete<Result> = (result: Result) => void;
 
 export type RaceCancellation = <Result>(
-  task: Task<Result>
+  task: Task<Result> | PromiseLike<Result>
 ) => Promise<Result | Cancellation>;
 
 export type NewCancellation = () => Cancellation;
