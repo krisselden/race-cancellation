@@ -25,12 +25,14 @@ export default function newRaceCancellation(
 
 function raceCancellation<Result>(
   cancellation: Oneshot<unknown>,
-  task: Task<Result>,
+  task: Task<Result> | PromiseLike<Result>,
   intoCancellation: IntoCancellation
 ): Promise<Result | Cancellation> {
-  return cancellation[hasCompleted]
-    ? cancellation().then(intoCancellation)
-    : Promise.race([task(), cancellation().then(intoCancellation)]);
+  return typeof task === "function"
+    ? cancellation[hasCompleted]
+      ? cancellation().then(intoCancellation)
+      : Promise.race([task(), cancellation().then(intoCancellation)])
+    : Promise.race([task, cancellation().then(intoCancellation)]);
 }
 
 function newIntoCancellation(

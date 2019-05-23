@@ -2,6 +2,7 @@ const {
   combineRaceCancellation,
   cancellableRace,
   throwIfCancelled,
+  noopRaceCancellation,
 } = require("race-cancellation");
 
 QUnit.module("combineRaceCancellation", () => {
@@ -14,7 +15,7 @@ QUnit.module("combineRaceCancellation", () => {
 
   QUnit.test("calling combine with b as undefined", async assert => {
     const raceCancellation = combineRaceCancellation(
-      task => Promise.resolve().then(task),
+      noopRaceCancellation,
       undefined
     );
     const expected = new Date();
@@ -23,8 +24,9 @@ QUnit.module("combineRaceCancellation", () => {
   });
 
   QUnit.test("calling combine with a as undefined", async assert => {
-    const raceCancellation = combineRaceCancellation(undefined, task =>
-      Promise.resolve().then(task)
+    const raceCancellation = combineRaceCancellation(
+      undefined,
+      noopRaceCancellation
     );
     const expected = new Date();
     const actual = await raceCancellation(() => Promise.resolve(expected));

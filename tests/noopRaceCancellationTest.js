@@ -6,4 +6,10 @@ QUnit.module("noopRaceCancellation", () => {
     const actual = await noopRaceCancellation(() => Promise.resolve(expected));
     assert.equal(actual, expected);
   });
+
+  QUnit.test("it just resolves the promise", async assert => {
+    const expected = new Date();
+    const actual = await noopRaceCancellation(Promise.resolve(expected));
+    assert.equal(actual, expected);
+  });
 });
