@@ -22,6 +22,7 @@
   "author": "Kris Selden",
   "files": [
     "dist",
+    "docs",
     "src"
   ],
   "main": "dist/index.umd.js",
@@ -29,6 +30,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc && rollup -c",
+    "docs": "typedoc --theme markdown --out ./docs ./src --excludePrivate --readme none",
     "prepare": "env && yarn build",
     "report": "nyc report -r text -r lcov",
     "test": "yarn link && yarn link race-cancellation && tslint -p tsconfig.json && tsc -p tests/tsconfig.json && nyc -r lcov qunit tests",
@@ -45,6 +47,8 @@
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-terser": "^5.0.0",
     "tslint": "^5.16.0",
+    "typedoc": "^0.14.2",
+    "typedoc-plugin-markdown": "^1.2.1",
     "typescript": "^3.5.2"
   }
 }
