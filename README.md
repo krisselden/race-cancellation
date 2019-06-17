@@ -72,3 +72,7 @@ async function sleep(ms, raceCancel) {
   }
 }
 ```
+
+## Detailed API Documents
+
+- ["Detailed API Documents"](docs/README.md)
