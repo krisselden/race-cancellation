@@ -1,4 +1,5 @@
 # race-cancellation
+
 [![Build Status](https://travis-ci.org/krisselden/race-cancellation.svg?branch=master)](https://travis-ci.org/krisselden/race-cancellation)
 [![Coverage Status](https://coveralls.io/repos/github/krisselden/race-cancellation/badge.svg?branch=master)](https://coveralls.io/github/krisselden/race-cancellation?branch=master)
 
@@ -72,3 +73,44 @@ async function sleep(ms, raceCancel) {
   }
 }
 ```
+
+## Example of Cancellable Async Functions
+
+```js
+import * as fs from "fs";
+
+async function pollFile(path, interval, raceCancel) {
+  while (!fs.existsSync(path)) {
+    await sleep(interval, raceCancel);
+  }
+}
+
+async function sleep(ms, raceCancel) {
+  let id;
+  try {
+    const createTimeout = () =>
+      new Promise<void>(resolve => {
+        id = setTimeout(() => {
+          resolve();
+          id = undefined;
+        }, ms);
+      })
+    // if cancellation has happened race cancel can return
+    // a rejected promise without invoking createTimeout
+    // otherwise createTimeout is called and raced against
+    // a new Promise<never> created from the cancellation Promise,
+    // cancellationPromise.then(throwCancellationError)
+    return await raceCancel(createTimeout);
+  } finally {
+    if (id !== undefined) {
+      // cleanup timeout so node will exit right away if
+      // our script is done.
+      clearTimeout(id);
+    }
+  }
+}
+```
+
+## Detailed API Documents
+
+- ["Detailed API Documents"](docs/README.md)
