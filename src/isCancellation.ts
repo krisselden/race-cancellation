@@ -31,6 +31,7 @@ export default function isCancellation(
     typeof result === "object" &&
     result !== null &&
     cancellationBrand in result &&
-    (kind === undefined || kind === (result as Cancellation).kind)
+    (kind === undefined ||
+      (result as Cancellation)[cancellationBrand].kind === kind)
   );
 }

@@ -1,10 +1,10 @@
 const assert = require("assert");
 
-const { newCancellation, isCancellation } = require("..");
+const { intoCancellationError, isCancellation } = require("..");
 
-describe("newCancellation", () => {
+describe("intoCancellationError", () => {
   it("works without args", async () => {
-    const cancellation = newCancellation();
+    const cancellation = intoCancellationError();
     assert.ok(isCancellation(cancellation, "Cancellation"));
     assert.equal(cancellation.message, "the task was cancelled");
   });

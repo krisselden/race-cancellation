@@ -5,6 +5,7 @@
  * versions of the module are loaded it interops.
  *
  * So that for an unknown x
+ * isCancellation is
  * `typeof x === "object" && x !== null && Symbol.for("isCancellation") in x`
  */
 export const cancellationBrand = Symbol.for("isCancellation");
@@ -28,9 +29,13 @@ export const enum CancellationKind {
 }
 
 export interface Cancellation<Kind extends string = string> {
-  [cancellationBrand]: true;
+  [cancellationBrand]: CancellationPayload<Kind>;
+}
+
+export interface CancellationPayload<Kind extends string = string> {
   kind: Kind;
   message: string;
+  [key: string]: unknown;
 }
 
 export type Complete<Result> = (result: Result) => void;
@@ -51,7 +56,10 @@ export type OptionallyCancellableTask<Result> = (
   raceCancellation?: RaceCancellation
 ) => Promise<Result | Cancellation>;
 
-export type Cancel = (message?: string, kind?: string) => void;
+export interface Cancel {
+  (cancellation: Cancellation): void;
+  (message?: string, kind?: string): void;
+}
 
 export type CancellableRace = [RaceCancellation, Cancel];
 
@@ -67,3 +75,11 @@ export type NewTimeout = (callback: () => void, ms: number) => Dispose;
 export type NewTimeoutCancellation = () => Cancellation<
   CancellationKind.Timeout
 >;
+
+export type IntoCancellation<CancellationResult = unknown> = (
+  result: CancellationResult
+) => Cancellation;
+
+export interface CancellationError<Kind extends string = string>
+  extends Error,
+    Cancellation<Kind> {}

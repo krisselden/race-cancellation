@@ -1,4 +1,5 @@
-import { Cancellation, cancellationBrand } from "./interfaces";
+import { Cancellation } from "./interfaces";
+import intoCancellationError from "./intoCancellationError";
 import isCancellation from "./isCancellation";
 
 /**
@@ -9,11 +10,7 @@ export default function throwIfCancelled<Result>(
   result: Result | Cancellation
 ): Result {
   if (isCancellation(result)) {
-    const error = new Error(result.message) as Error & Cancellation;
-    error.name = `${result.kind}Error`;
-    error.kind = result.kind;
-    error[cancellationBrand] = true;
-    throw error;
+    throw intoCancellationError(result);
   }
   return result;
 }
