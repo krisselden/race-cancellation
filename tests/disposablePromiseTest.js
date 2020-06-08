@@ -1,7 +1,9 @@
-const { disposablePromise } = require("race-cancellation");
+const assert = require("assert");
 
-QUnit.module("disposablePromise", () => {
-  QUnit.test("works without passing a raceCancellation arg", async assert => {
+const { disposablePromise } = require("..");
+
+describe("disposablePromise", () => {
+  it("works without passing a raceCancellation arg", async () => {
     const expected = new Date();
     const actual = await disposablePromise(resolve => {
       resolve(expected);

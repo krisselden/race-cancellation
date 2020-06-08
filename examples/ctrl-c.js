@@ -1,8 +1,4 @@
-const {
-  cancellableRace,
-  disposablePromise,
-  throwIfCancelled,
-} = require("race-cancellation");
+const { cancellableRace, disposablePromise, throwIfCancelled } = require("..");
 
 const [raceCancellation, cancel] = cancellableRace();
 

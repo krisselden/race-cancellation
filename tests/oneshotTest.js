@@ -1,15 +1,14 @@
-const { oneshot } = require("race-cancellation");
+const assert = require("assert");
 
-QUnit.module("oneshot", () => {
-  QUnit.test(
-    "calling complete more than once doesn't affect result",
-    async assert => {
-      const expected = new Date();
-      const [promise, complete] = oneshot();
-      complete(expected);
-      complete("something else");
-      const actual = await promise();
-      assert.equal(actual, expected);
-    }
-  );
+const { oneshot } = require("..");
+
+describe("oneshot", () => {
+  it("calling complete more than once doesn't affect result", async () => {
+    const expected = new Date();
+    const [promise, complete] = oneshot();
+    complete(expected);
+    complete("something else");
+    const actual = await promise();
+    assert.equal(actual, expected);
+  });
 });

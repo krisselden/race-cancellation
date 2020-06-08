@@ -1,11 +1,13 @@
-const { throwIfCancelled, withRaceSettled } = require("race-cancellation");
+const assert = require("assert");
+
+const { throwIfCancelled, withRaceSettled } = require("..");
 
 /**
- * @typedef {import("race-cancellation").RaceCancellation} RaceCancellation
+ * @typedef {import("..").RaceCancellation} RaceCancellation
  */
 
-QUnit.module("withRaceSettled", () => {
-  QUnit.test("resolves with the result of the task", async assert => {
+describe("withRaceSettled", () => {
+  it("resolves with the result of the task", async () => {
     const expected = { result: "result" };
 
     const task = withRaceSettled(async () => expected);
@@ -15,7 +17,7 @@ QUnit.module("withRaceSettled", () => {
     assert.strictEqual(actual, expected);
   });
 
-  QUnit.test("rejects if task function rejects", async assert => {
+  it("rejects if task function rejects", async () => {
     const task = withRaceSettled(async () => {
       throw Error("some error");
     });
@@ -27,59 +29,60 @@ QUnit.module("withRaceSettled", () => {
     }
   });
 
-  QUnit.test(
-    "subtask is canceled if short-circuited Promise.all",
-    async assert => {
-      /**
-       * @param {RaceCancellation} raceCancel
-       */
-      async function cancellableSubtask(raceCancel) {
-        try {
-          assert.step("subtask: await raceCancel");
-          throwIfCancelled(
-            await raceCancel(
-              () =>
-                new Promise(() => {
-                  // never resolving promise
-                })
-            )
-          );
-          assert.step("subtask: unreachable");
-        } catch (e) {
-          assert.step(`subtask: error: ${e}`);
-        } finally {
-          assert.step("subtask: finally");
-        }
-      }
+  it("subtask is canceled if short-circuited Promise.all", async () => {
+    /** @type {string[]} */
+    const steps = [];
+    const step = /** @param {string} step */ step => void steps.push(step);
 
-      const task = withRaceSettled(async raceExit => {
-        assert.step(`task: await all`);
-
-        await Promise.all([
-          Promise.reject(new Error("some error")),
-          cancellableSubtask(raceExit),
-        ]);
-        assert.step(`task: unreachable`);
-      });
-
+    /**
+     * @param {RaceCancellation} raceCancel
+     */
+    async function cancellableSubtask(raceCancel) {
       try {
-        assert.step(`await runTask`);
-        await task();
+        step("subtask: await raceCancel");
+        throwIfCancelled(
+          await raceCancel(
+            () =>
+              new Promise(() => {
+                // never resolving promise
+              })
+          )
+        );
+        step("subtask: unreachable");
       } catch (e) {
-        assert.step(`error: ${e}`);
+        step(`subtask: error: ${e}`);
+      } finally {
+        step("subtask: finally");
       }
-
-      // raceExit should finish out pending
-      await new Promise(resolve => setTimeout(resolve, 0));
-
-      assert.verifySteps([
-        "await runTask",
-        "task: await all",
-        "subtask: await raceCancel",
-        "error: Error: some error",
-        "subtask: error: ShortCircuitError: the task was short-circuited by another concurrent task winning a Promise.race or rejecting a Promise.all",
-        "subtask: finally",
-      ]);
     }
-  );
+
+    const task = withRaceSettled(async raceExit => {
+      step(`task: await all`);
+
+      await Promise.all([
+        Promise.reject(new Error("some error")),
+        cancellableSubtask(raceExit),
+      ]);
+      step(`task: unreachable`);
+    });
+
+    try {
+      step(`await runTask`);
+      await task();
+    } catch (e) {
+      step(`error: ${e}`);
+    }
+
+    // raceExit should finish out pending
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    assert.deepEqual(steps, [
+      "await runTask",
+      "task: await all",
+      "subtask: await raceCancel",
+      "error: Error: some error",
+      "subtask: error: ShortCircuitError: the task was short-circuited by another concurrent task winning a Promise.race or rejecting a Promise.all",
+      "subtask: finally",
+    ]);
+  });
 });

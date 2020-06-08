@@ -3,17 +3,19 @@ const {
   cancellableRace,
   throwIfCancelled,
   noopRaceCancellation,
-} = require("race-cancellation");
+} = require("..");
 
-QUnit.module("combineRaceCancellation", () => {
-  QUnit.test("calling combine with a & b both undefined", async assert => {
+const assert = require("assert");
+
+describe("combineRaceCancellation", () => {
+  it("calling combine with a & b both undefined", async () => {
     const raceCancellation = combineRaceCancellation(undefined, undefined);
     const expected = new Date();
     const actual = await raceCancellation(() => Promise.resolve(expected));
     assert.equal(actual, expected);
   });
 
-  QUnit.test("calling combine with b as undefined", async assert => {
+  it("calling combine with b as undefined", async () => {
     const raceCancellation = combineRaceCancellation(
       noopRaceCancellation,
       undefined
@@ -23,7 +25,7 @@ QUnit.module("combineRaceCancellation", () => {
     assert.equal(actual, expected);
   });
 
-  QUnit.test("calling combine with a as undefined", async assert => {
+  it("calling combine with a as undefined", async () => {
     const raceCancellation = combineRaceCancellation(
       undefined,
       noopRaceCancellation
@@ -33,8 +35,9 @@ QUnit.module("combineRaceCancellation", () => {
     assert.equal(actual, expected);
   });
 
-  QUnit.test("task success", async assert => {
-    const { runTest, cancelA, cancelB } = createTest(assert);
+  it("task success", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancelA, cancelB } = createTest(step);
 
     const expected = new Date();
     await runTest({
@@ -46,7 +49,7 @@ QUnit.module("combineRaceCancellation", () => {
     cancelA();
     cancelB();
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "race A started",
       "race B started",
@@ -55,8 +58,9 @@ QUnit.module("combineRaceCancellation", () => {
     ]);
   });
 
-  QUnit.test("task error", async assert => {
-    const { runTest, cancelA, cancelB } = createTest(assert);
+  it("task error", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancelA, cancelB } = createTest(step);
 
     const expected = new Date();
     await runTest({
@@ -68,7 +72,7 @@ QUnit.module("combineRaceCancellation", () => {
     cancelA();
     cancelB();
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "race A started",
       "race B started",
@@ -77,8 +81,9 @@ QUnit.module("combineRaceCancellation", () => {
     ]);
   });
 
-  QUnit.test("cancel A before race", async assert => {
-    const { runTest, cancelA } = createTest(assert);
+  it("cancel A before race", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancelA } = createTest(step);
 
     cancelA();
 
@@ -88,15 +93,16 @@ QUnit.module("combineRaceCancellation", () => {
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "race A started",
       "await threw: CancellationError: A cancelled",
     ]);
   });
 
-  QUnit.test("cancel A after race", async assert => {
-    const { runTest, cancelA } = createTest(assert);
+  it("cancel A after race", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancelA } = createTest(step);
 
     await runTest({
       taskStart() {
@@ -105,7 +111,7 @@ QUnit.module("combineRaceCancellation", () => {
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "race A started",
       "race B started",
@@ -114,8 +120,9 @@ QUnit.module("combineRaceCancellation", () => {
     ]);
   });
 
-  QUnit.test("cancel B before race", async assert => {
-    const { runTest, cancelB } = createTest(assert);
+  it("cancel B before race", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancelB } = createTest(step);
 
     cancelB();
 
@@ -125,7 +132,7 @@ QUnit.module("combineRaceCancellation", () => {
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "race A started",
       "race B started",
@@ -133,8 +140,9 @@ QUnit.module("combineRaceCancellation", () => {
     ]);
   });
 
-  QUnit.test("cancel B after race", async assert => {
-    const { runTest, cancelB } = createTest(assert);
+  it("cancel B after race", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancelB } = createTest(step);
 
     await runTest({
       taskStart() {
@@ -143,7 +151,7 @@ QUnit.module("combineRaceCancellation", () => {
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "race A started",
       "race B started",
@@ -160,8 +168,9 @@ QUnit.module("combineRaceCancellation", () => {
   // Promise.race([a, Promise.race([b, task])]) will combine to one race,
   // but Promise.race([a,Promise.resolve().then(() => Promise.race([b, task]))])
   // is not able to win a tie of them resolving at the same time.
-  QUnit.test("tied with resolve", async assert => {
-    const { runTest, cancelA, cancelB } = createTest(assert);
+  it("tied with resolve", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancelA, cancelB } = createTest(step);
 
     const expected = new Date();
 
@@ -174,7 +183,7 @@ QUnit.module("combineRaceCancellation", () => {
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "race A started",
       "race B started",
@@ -183,8 +192,9 @@ QUnit.module("combineRaceCancellation", () => {
     ]);
   });
 
-  QUnit.test("tied with reject", async assert => {
-    const { runTest, cancelA, cancelB } = createTest(assert);
+  it("tied with reject", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancelA, cancelB } = createTest(step);
 
     const expected = new Date();
 
@@ -197,7 +207,7 @@ QUnit.module("combineRaceCancellation", () => {
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "race A started",
       "race B started",
@@ -219,9 +229,9 @@ QUnit.module("combineRaceCancellation", () => {
  */
 
 /**
- * @param {Assert} assert
+ * @param {(step: string) => void} step
  */
-function createTest(assert) {
+function createTest(step) {
   const [raceA, cancelA] = cancellableRace();
 
   const [raceB, cancelB] = cancellableRace();
@@ -232,27 +242,27 @@ function createTest(assert) {
   async function runTest(delegate) {
     const combinedRace = combineRaceCancellation(
       task => {
-        assert.step("race A started");
+        step("race A started");
         return raceA(task);
       },
       task => {
-        assert.step("race B started");
+        step("race B started");
         return raceB(task);
       }
     );
     try {
-      assert.step("begin await");
-      let res = throwIfCancelled(
+      step("begin await");
+      const res = throwIfCancelled(
         await combinedRace(() => {
-          assert.step("task started");
+          step("task started");
           return new Promise((resolve, reject) => {
             delegate.taskStart({ resolve, reject });
           });
         })
       );
-      assert.step(`await returned: ${res}`);
+      step(`await returned: ${res}`);
     } catch (e) {
-      assert.step(`await threw: ${e}`);
+      step(`await threw: ${e}`);
     }
   }
 
@@ -261,4 +271,13 @@ function createTest(assert) {
     cancelB: () => cancelB("B cancelled"),
     runTest: runTest,
   };
+}
+
+/**
+ * @returns {[(step: string) => void, string[]]}
+ */
+function createSteps() {
+  /** @type {string[]} */
+  const steps = [];
+  return [/** @param {string} step */ step => steps.push(step), steps];
 }

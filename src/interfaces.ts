@@ -57,7 +57,7 @@ export type CancellableRace = [RaceCancellation, Cancel];
 
 export type Executor<Result> = (
   resolve: (value?: Result | PromiseLike<Result>) => void,
-  reject: (reason?: any) => void
+  reject: (reason?: unknown) => void
 ) => Dispose;
 
 export type Dispose = () => void;
