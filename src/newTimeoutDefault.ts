@@ -1,4 +1,4 @@
-import { NewTimeout } from "./interfaces";
+import { Dispose, NewTimeout } from "./interfaces";
 
 export type TimeoutID = unknown;
 
@@ -21,7 +21,7 @@ const newTimeoutDefault: NewTimeout = (() => {
     return undefined as never;
   }
 
-  function newTimeout(callback: () => void, miliseconds: number) {
+  function newTimeout(callback: () => void, miliseconds: number): Dispose {
     const id = setTimeout(callback, miliseconds);
     return () => clearTimeout(id);
   }

@@ -1,5 +1,4 @@
-import { Cancel, RaceCancellation } from "./interfaces";
-import { Cancellation } from "./interfaces";
+import { Cancel, Cancellation, RaceCancellation } from "./interfaces";
 import newCancellation from "./newCancellation";
 import newRaceCancellation from "./newRaceCancellation";
 import oneshot from "./oneshot";

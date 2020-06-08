@@ -1,12 +1,11 @@
-const {
-  withRaceTimeout,
-  cancellableRace,
-  throwIfCancelled,
-} = require("race-cancellation");
+const assert = require("assert");
 
-QUnit.module("withRaceTimeout", () => {
-  QUnit.test("task success", async assert => {
-    const { runTest } = createTimeoutTest(assert);
+const { withRaceTimeout, cancellableRace, throwIfCancelled } = require("..");
+
+describe("withRaceTimeout", () => {
+  it("task success", async () => {
+    const [step, steps] = createSteps();
+    const { runTest } = createTimeoutTest(step);
 
     const expected = new Date();
     await runTest({
@@ -15,15 +14,16 @@ QUnit.module("withRaceTimeout", () => {
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "task started",
       `await returned: ${expected}`,
     ]);
   });
 
-  QUnit.test("task error", async assert => {
-    const { runTest } = createTimeoutTest(assert);
+  it("task error", async () => {
+    const [step, steps] = createSteps();
+    const { runTest } = createTimeoutTest(step);
 
     const expected = new Date();
     await runTest({
@@ -32,58 +32,61 @@ QUnit.module("withRaceTimeout", () => {
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "task started",
       `await threw: ${expected}`,
     ]);
   });
 
-  QUnit.test("task timeout", async assert => {
-    const { runTest } = createTimeoutTest(assert);
+  it("task timeout", async () => {
+    const [step, steps] = createSteps();
+    const { runTest } = createTimeoutTest(step);
 
     await runTest({
-      taskStart(_deferred) {
+      taskStart() {
         // never resolve task
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "task started",
       "await threw: TimeoutError: task took longer than 10ms",
     ]);
   });
 
-  QUnit.test("cancel before", async assert => {
-    const { runTest, cancel } = createTimeoutTest(assert);
+  it("cancel before", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancel } = createTimeoutTest(step);
 
     cancel();
 
     await runTest({
-      taskStart(_deferred) {
+      taskStart() {
         // never resolve task
         assert.ok(false, "task should not start");
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "await threw: CancellationError: outer race cancelled",
     ]);
   });
 
-  QUnit.test("cancel after", async assert => {
-    const { runTest, cancel } = createTimeoutTest(assert);
+  it("cancel after", async () => {
+    const [step, steps] = createSteps();
+    const { runTest, cancel } = createTimeoutTest(step);
 
     await runTest({
-      taskStart(_deferred) {
+      taskStart() {
         cancel();
         // never resolve task
       },
     });
 
-    assert.verifySteps([
+    assert.deepEqual(steps, [
       "begin await",
       "task started",
       "await threw: CancellationError: outer race cancelled",
@@ -103,9 +106,9 @@ QUnit.module("withRaceTimeout", () => {
  */
 
 /**
- * @param {Assert} assert
+ * @param {(step: string) => void} step
  */
-function createTimeoutTest(assert) {
+function createTimeoutTest(step) {
   const [raceCancellation, cancel] = cancellableRace();
 
   /**
@@ -113,22 +116,22 @@ function createTimeoutTest(assert) {
    */
   async function runTest(delegate) {
     function task() {
-      assert.step("task started");
+      step("task started");
       return new Promise((resolve, reject) => {
         delegate.taskStart({ resolve, reject });
       });
     }
 
-    assert.step("begin await");
+    step("begin await");
     try {
       const res = throwIfCancelled(
         await withRaceTimeout(innerRace => innerRace(task), 10)(
           raceCancellation
         )
       );
-      assert.step(`await returned: ${res}`);
+      step(`await returned: ${res}`);
     } catch (e) {
-      assert.step(`await threw: ${e}`);
+      step(`await threw: ${e}`);
     }
   }
 
@@ -136,4 +139,13 @@ function createTimeoutTest(assert) {
     cancel: () => cancel("outer race cancelled"),
     runTest,
   };
+}
+
+/**
+ * @returns {[(step: string) => void, string[]]}
+ */
+function createSteps() {
+  /** @type {string[]} */
+  const steps = [];
+  return [/** @param {string} step */ step => steps.push(step), steps];
 }

@@ -1,10 +1,10 @@
-import { Dispose, Executor } from "./interfaces";
+import { Cancellation, Dispose, Executor } from "./interfaces";
 import noop from "./noopRaceCancellation";
 
 export default async function disposablePromise<Result>(
   executor: Executor<Result>,
   raceCancellation = noop
-) {
+): Promise<Result | Cancellation> {
   let dispose: Dispose | undefined;
   try {
     return await raceCancellation(

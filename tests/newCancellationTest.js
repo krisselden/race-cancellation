@@ -1,7 +1,9 @@
-const { newCancellation, isCancellation } = require("race-cancellation");
+const assert = require("assert");
 
-QUnit.module("newCancellation", () => {
-  QUnit.test("works without args", async assert => {
+const { newCancellation, isCancellation } = require("..");
+
+describe("newCancellation", () => {
+  it("works without args", async () => {
     const cancellation = newCancellation();
     assert.ok(isCancellation(cancellation, "Cancellation"));
     assert.equal(cancellation.message, "the task was cancelled");

@@ -1,9 +1,8 @@
-const { cancellableRace } = require("race-cancellation");
+const { cancellableRace } = require("..");
+const assert = require("assert");
 
-QUnit.module("cancellableRace", () => {
-  QUnit.test("cancel before race already rejected promise", async assert => {
-    assert.expect(1);
-
+describe("cancellableRace", () => {
+  it("cancel before race already rejected promise", async () => {
     const [raceCancellation, cancel] = cancellableRace();
 
     cancel();
@@ -11,6 +10,7 @@ QUnit.module("cancellableRace", () => {
 
     try {
       await raceCancellation(task);
+      assert.fail("expected failure");
     } catch (e) {
       assert.equal(e.message, "failed task");
     }

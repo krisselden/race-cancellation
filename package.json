@@ -30,21 +30,32 @@
   "scripts": {
     "build": "tsc && rollup -c",
     "prepare": "env && yarn build",
-    "report": "nyc report -r text -r lcov",
-    "test": "yarn link && yarn link race-cancellation && tslint -p tsconfig.json && tsc -p tests/tsconfig.json && nyc -r lcov qunit tests",
+    "report": "c8 report -r lcov",
+    "test": "eslint --ext .ts . && tsc -p tests/tsconfig.json && c8 mocha",
     "posttest": "yarn report"
   },
   "devDependencies": {
     "@types/node": "^12.0.0",
-    "@types/qunit": "^2.9.0",
-    "coveralls": "^3.0.3",
-    "nyc": "^14.1.1",
+    "@types/mocha": "^7.0.2",
+    "@typescript-eslint/eslint-plugin": "^2.28.0",
+    "@typescript-eslint/parser": "^2.28.0",
+    "c8": "^7.1.0",
+    "chai": "^4.2.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-filenames": "^1.3.2",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-simple-import-sort": "^5.0.2",
+    "mocha": "^7.1.1",
     "prettier": "^1.18.2",
     "qunit": "^2.9.2",
     "rollup": "^1.15.6",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-terser": "^5.0.0",
-    "tslint": "^5.16.0",
-    "typescript": "^3.5.2"
+    "typescript": "^3.9.3"
+  },
+  "mocha": {
+    "spec": "tests/**/*Test.js"
   }
 }

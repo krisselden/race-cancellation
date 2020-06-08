@@ -7,7 +7,7 @@
     "target": "es2017",
     "moduleResolution": "node",
     "module": "commonjs",
-    "types": ["node", "qunit"]
+    "types": ["node", "mocha"]
   },
   "include": ["*.js"]
 }

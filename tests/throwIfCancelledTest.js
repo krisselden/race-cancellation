@@ -1,13 +1,9 @@
-const {
-  cancellableRace,
-  isCancellation,
-  throwIfCancelled,
-} = require("race-cancellation");
+const assert = require("assert");
 
-QUnit.module("throwIfCancelled", () => {
-  QUnit.test("error is itself a cancellation", async assert => {
-    assert.expect(1);
+const { cancellableRace, isCancellation, throwIfCancelled } = require("..");
 
+describe("throwIfCancelled", () => {
+  it("error is itself a cancellation", async () => {
     const [raceCancellation, cancel] = cancellableRace();
 
     cancel();
@@ -21,6 +17,7 @@ QUnit.module("throwIfCancelled", () => {
             })
         )
       );
+      assert.fail("expected to fail");
     } catch (e) {
       assert.ok(isCancellation(e), "error is a cancellation");
     }
