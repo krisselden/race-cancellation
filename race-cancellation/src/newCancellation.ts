@@ -3,7 +3,7 @@ import {
   cancellationBrand,
   CancellationKind,
   CancellationPayload,
-} from "./interfaces";
+} from "./interfaces.js";
 
 /**
  * Creates a new `Cancellation`.

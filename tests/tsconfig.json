@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
-    "noEmit": true,
-    "strict": true,
     "allowJs": true,
     "checkJs": true,
-    "target": "es2017",
+    "target": "ES2018",
     "moduleResolution": "node",
     "module": "commonjs",
-    "types": ["node", "mocha"]
+    "strict": true,
+    "noEmit": true,
+    "types": ["node", "mocha"],
+    "esModuleInterop": true
   },
-  "include": ["*.js"]
+  "include": ["globals.d.ts", "*.js"]
 }

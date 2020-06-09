@@ -1,4 +1,8 @@
-const { cancellableRace, disposablePromise, throwIfCancelled } = require("..");
+import {
+  cancellableRace,
+  disposablePromise,
+  throwIfCancelled,
+} from "race-cancellation";
 
 const [raceCancellation, cancel] = cancellableRace();
 
@@ -41,7 +45,7 @@ async function doRealAsyncStep() {
   // `disposablePromise` is helper for real async to
   // ensure cleanup on cancellation
   throwIfCancelled(
-    await disposablePromise(resolve => {
+    await disposablePromise((resolve) => {
       const id = setTimeout(resolve, 1000);
       return () => {
         clearTimeout(id);

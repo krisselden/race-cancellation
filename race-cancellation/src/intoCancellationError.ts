@@ -3,8 +3,8 @@ import {
   cancellationBrand,
   CancellationError,
   CancellationKind,
-} from "./interfaces";
-import isCancellation from "./isCancellation";
+} from "./interfaces.js";
+import isCancellation from "./isCancellation.js";
 
 export default function intoCancellationError<Kind extends string>(
   cancelation: Cancellation<Kind>

@@ -3,11 +3,11 @@ import {
   IntoCancellation,
   RaceCancellation,
   Task,
-} from "./interfaces";
-import { hasCompleted, Oneshot } from "./internal";
-import isCancellation from "./isCancellation";
-import newCancellation from "./newCancellation";
-import { intoOneshot } from "./oneshot";
+} from "./interfaces.js";
+import { hasCompleted, Oneshot } from "./internal.js";
+import isCancellation from "./isCancellation.js";
+import newCancellation from "./newCancellation.js";
+import { intoOneshot } from "./oneshot.js";
 
 /**
  * Create a race cancellation function.
@@ -49,7 +49,8 @@ export default function newRaceCancellation<CancellationResult = unknown>(
           cancellationMessage,
           cancellationKind
         );
-  return task => raceCancellation(cancellationOneshot, task, intoCancellation);
+  return (task) =>
+    raceCancellation(cancellationOneshot, task, intoCancellation);
 }
 
 function raceCancellation<TaskResult, CancellationResult>(

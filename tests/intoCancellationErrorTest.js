@@ -1,6 +1,7 @@
+/** @type {import("assert")} */
 const assert = require("assert");
 
-const { intoCancellationError, isCancellation } = require("..");
+const { intoCancellationError, isCancellation } = require("./helper");
 
 describe("intoCancellationError", () => {
   it("works without args", async () => {

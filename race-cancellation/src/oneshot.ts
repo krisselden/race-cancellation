@@ -1,6 +1,6 @@
 import { Complete } from "./interfaces";
-import { hasCompleted, Oneshot, thunkBrand } from "./internal";
-import once from "./once";
+import { hasCompleted, Oneshot, thunkBrand } from "./internal.js";
+import once from "./once.js";
 
 /**
  * Creates a tuple of a function to lazily build a promise of a one time event
@@ -16,14 +16,14 @@ export default function oneshot<Result>(): [
   const thunk = once(() =>
     thunk[hasCompleted]
       ? Promise.resolve(result as Result)
-      : new Promise(resolve => {
+      : new Promise((resolve) => {
           onResolve = resolve;
         })
   ) as Oneshot<Result>;
   thunk[thunkBrand] = true;
   thunk[hasCompleted] = false;
 
-  const complete: Complete<Result> = value => {
+  const complete: Complete<Result> = (value) => {
     if (thunk[hasCompleted]) {
       return;
     }

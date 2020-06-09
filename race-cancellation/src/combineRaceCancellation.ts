@@ -1,5 +1,5 @@
-import { RaceCancellation } from "./interfaces";
-import noopRaceCancellation from "./noopRaceCancellation";
+import { RaceCancellation } from "./interfaces.js";
+import noopRaceCancellation from "./noopRaceCancellation.js";
 
 /**
  * Returns a RaceCancellation that is the combination of two RaceCancellation implemenations.
@@ -19,5 +19,5 @@ export default function combineRaceCancellation(
       : b
     : b === undefined
     ? a
-    : task => a(() => b(task));
+    : (task) => a(() => b(task));
 }

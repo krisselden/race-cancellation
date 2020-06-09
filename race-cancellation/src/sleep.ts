@@ -1,7 +1,7 @@
-import disposablePromise from "./disposablePromise";
-import { Cancellation } from "./interfaces";
-import newTimeoutDefault from "./newTimeoutDefault";
-import noopRaceCancellation from "./noopRaceCancellation";
+import disposablePromise from "./disposablePromise.js";
+import { Cancellation } from "./interfaces.js";
+import newTimeoutDefault from "./newTimeoutDefault.js";
+import noopRaceCancellation from "./noopRaceCancellation.js";
 
 /**
  * Cancellable promise of a timeout.
@@ -25,7 +25,7 @@ export default async function sleep(
   newTimeout = newTimeoutDefault
 ): Promise<void | Cancellation> {
   return disposablePromise<void>(
-    resolve => newTimeout(resolve, milliseconds),
+    (resolve) => newTimeout(resolve, milliseconds),
     raceCancellation
   );
 }

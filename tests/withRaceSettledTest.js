@@ -1,9 +1,10 @@
+/** @type {import("assert")} */
 const assert = require("assert");
 
-const { throwIfCancelled, withRaceSettled } = require("..");
+const { throwIfCancelled, withRaceSettled } = require("./helper");
 
 /**
- * @typedef {import("..").RaceCancellation} RaceCancellation
+ * @typedef {import("race-cancellation").RaceCancellation} RaceCancellation
  */
 
 describe("withRaceSettled", () => {
@@ -12,6 +13,7 @@ describe("withRaceSettled", () => {
 
     const task = withRaceSettled(async () => expected);
 
+    /** @type {unknown} */
     const actual = await task();
 
     assert.strictEqual(actual, expected);
@@ -32,7 +34,7 @@ describe("withRaceSettled", () => {
   it("subtask is canceled if short-circuited Promise.all", async () => {
     /** @type {string[]} */
     const steps = [];
-    const step = /** @param {string} step */ step => void steps.push(step);
+    const step = /** @param {string} step */ (step) => void steps.push(step);
     /**
      * @param {RaceCancellation} raceCancel
      */
@@ -55,7 +57,7 @@ describe("withRaceSettled", () => {
       }
     }
 
-    const task = withRaceSettled(async raceExit => {
+    const task = withRaceSettled(async (raceExit) => {
       step(`task: await all`);
 
       await Promise.all([
@@ -73,7 +75,7 @@ describe("withRaceSettled", () => {
     }
 
     // raceExit should finish out pending
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     assert.deepEqual(steps, [
       "await runTask",

@@ -1,6 +1,7 @@
+/** @type {import("assert")} */
 const assert = require("assert");
 
-const { oneshot } = require("..");
+const { oneshot } = require("./helper");
 
 describe("oneshot", () => {
   it("calling complete more than once doesn't affect result", async () => {

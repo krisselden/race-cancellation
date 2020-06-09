@@ -1,4 +1,4 @@
-import { Dispose, NewTimeout } from "./interfaces";
+import { Dispose, NewTimeout } from "./interfaces.js";
 
 export type TimeoutID = unknown;
 

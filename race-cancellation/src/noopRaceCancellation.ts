@@ -1,4 +1,4 @@
-import { RaceCancellation, Task } from "./interfaces";
+import { RaceCancellation, Task } from "./interfaces.js";
 
 /**
  * Allows an async function to add raceCancellation as an optional param
