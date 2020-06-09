@@ -33,7 +33,6 @@ describe("withRaceSettled", () => {
     /** @type {string[]} */
     const steps = [];
     const step = /** @param {string} step */ step => void steps.push(step);
-
     /**
      * @param {RaceCancellation} raceCancel
      */
