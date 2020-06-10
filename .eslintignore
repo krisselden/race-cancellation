@@ -1,7 +1,7 @@
-/node_modules/
-/dist/
-/temp/
-/tmp/
-/docs/
-/etc/
+**/node_modules/
+**/dist/
+**/temp/
+**/tmp/
+**/docs/
+**/etc/
 /coverage/

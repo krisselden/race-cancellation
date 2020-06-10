@@ -1,5 +1,7 @@
-const { cancellableRace } = require("..");
+/** @type {import("assert")} */
 const assert = require("assert");
+
+const { cancellableRace } = require("./helper");
 
 describe("cancellableRace", () => {
   it("cancel before race already rejected promise", async () => {

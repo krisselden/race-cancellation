@@ -1,0 +1,52 @@
+{
+  "name": "race-cancellation",
+  "version": "0.4.1",
+  "description": "Utilities for using Promise.race([task, cancellation]) for async/await code.",
+  "keywords": [
+    "async",
+    "cancel",
+    "cancellable",
+    "cancellation",
+    "promise",
+    "race"
+  ],
+  "homepage": "https://github.com/krisselden/race-cancellation#readme",
+  "bugs": {
+    "url": "https://github.com/krisselden/race-cancellation/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krisselden/race-cancellation.git"
+  },
+  "license": "BSD-2-Clause",
+  "author": "Kris Selden",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "mocha": {
+    "spec": "tests/**/*Test.js"
+  },
+  "scripts": {
+    "build": "tsc && rollup -c",
+    "prepare": "yarn build"
+  },
+  "devDependencies": {
+    "rollup": "^1.20.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-terser": "^5.1.1",
+    "typescript": "3.8.3"
+  },
+  "volta": {
+    "node": "11.15.0",
+    "yarn": "1.22.4"
+  }
+}

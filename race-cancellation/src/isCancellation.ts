@@ -1,4 +1,4 @@
-import { Cancellation, cancellationBrand } from "./interfaces";
+import { Cancellation, cancellationBrand } from "./interfaces.js";
 
 /**
  * Test whether an unknown result is a Cancellation of the specified kind.

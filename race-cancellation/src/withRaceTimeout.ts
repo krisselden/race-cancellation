@@ -3,9 +3,9 @@ import {
   CancellationKind,
   NewTimeout,
   OptionallyCancellableTask,
-} from "./interfaces";
-import sleep from "./sleep";
-import withRaceCancellationTask from "./withRaceCancellationTask";
+} from "./interfaces.js";
+import sleep from "./sleep.js";
+import withRaceCancellationTask from "./withRaceCancellationTask.js";
 
 /**
  * Wrap a cancellable task with a timeout.
@@ -31,7 +31,7 @@ export default function withRaceTimeout<Result>(
 ): OptionallyCancellableTask<Result> {
   return withRaceCancellationTask(
     task,
-    raceCancellation => sleep(milliseconds, raceCancellation, newTimeout),
+    (raceCancellation) => sleep(milliseconds, raceCancellation, newTimeout),
     message || `task took longer than ${milliseconds}ms`,
     CancellationKind.Timeout
   );

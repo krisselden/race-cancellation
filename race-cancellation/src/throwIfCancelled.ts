@@ -1,6 +1,6 @@
-import { Cancellation } from "./interfaces";
-import intoCancellationError from "./intoCancellationError";
-import isCancellation from "./isCancellation";
+import { Cancellation } from "./interfaces.js";
+import intoCancellationError from "./intoCancellationError.js";
+import isCancellation from "./isCancellation.js";
 
 /**
  * Throw if the `result` is a `Cancellation` otherwise return it.

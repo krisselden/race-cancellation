@@ -1,12 +1,12 @@
-import combineRaceCancellation from "./combineRaceCancellation";
+import combineRaceCancellation from "./combineRaceCancellation.js";
 import {
   CancellableTask,
   Cancellation,
   OptionallyCancellableTask,
   RaceCancellation,
-} from "./interfaces";
-import newRaceCancellation from "./newRaceCancellation";
-import withRaceSettled from "./withRaceSettled";
+} from "./interfaces.js";
+import newRaceCancellation from "./newRaceCancellation.js";
+import withRaceSettled from "./withRaceSettled.js";
 
 /**
  * Wrap a cancellable task to pass in a raceCancellation that combines the input raceCancellation

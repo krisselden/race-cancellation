@@ -4,10 +4,10 @@ import {
   IntoCancellation,
   RaceCancellation,
 } from "./interfaces";
-import isCancellation from "./isCancellation";
-import newCancellation from "./newCancellation";
-import newRaceCancellation from "./newRaceCancellation";
-import oneshot from "./oneshot";
+import isCancellation from "./isCancellation.js";
+import newCancellation from "./newCancellation.js";
+import newRaceCancellation from "./newRaceCancellation.js";
+import oneshot from "./oneshot.js";
 
 /**
  * Returns a tuple of a `RaceCancellation` with a function that resolves the cancellation.

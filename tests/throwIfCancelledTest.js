@@ -1,6 +1,11 @@
+/** @type {import("assert")} */
 const assert = require("assert");
 
-const { cancellableRace, isCancellation, throwIfCancelled } = require("..");
+const {
+  cancellableRace,
+  isCancellation,
+  throwIfCancelled,
+} = require("./helper");
 
 describe("throwIfCancelled", () => {
   it("error is itself a cancellation", async () => {

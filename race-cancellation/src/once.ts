@@ -1,4 +1,4 @@
-import { Thunk, thunkBrand } from "./internal";
+import { Thunk, thunkBrand } from "./internal.js";
 export default function once<Result>(force: () => Result): Thunk<Result> {
   let unforced = true;
   let result: Result;

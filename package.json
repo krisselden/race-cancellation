@@ -1,60 +1,45 @@
 {
-  "name": "race-cancellation",
-  "version": "0.4.1",
-  "description": "Utilities for using Promise.race([task, cancellation]) for async/await code.",
-  "keywords": [
-    "async",
-    "cancel",
-    "cancellable",
-    "cancellation",
-    "promise",
-    "race"
+  "private": true,
+  "workspaces": [
+    "tests",
+    "race-cancellation",
+    "examples"
   ],
-  "homepage": "https://github.com/krisselden/race-cancellation#readme",
-  "bugs": {
-    "url": "https://github.com/krisselden/race-cancellation/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/krisselden/race-cancellation.git"
-  },
-  "license": "BSD-2-Clause",
-  "author": "Kris Selden",
-  "files": [
-    "dist",
-    "src"
-  ],
-  "main": "dist/index.umd.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && rollup -c",
-    "prepare": "env && yarn build",
-    "report": "c8 report -r lcov",
-    "test": "eslint --ext .ts . && tsc -p tests/tsconfig.json && c8 mocha",
-    "posttest": "yarn report"
+    "prepare": "yarn workspace race-cancellation prepare",
+    "lint": "npm-run-all lint:*",
+    "lint:eslint": "eslint .",
+    "lint:tests": "tsc -p tests --noEmit",
+    "lint:examples": "tsc -p examples --noEmit",
+    "test": "npm-run-all lint test:coverage",
+    "test:coverage": "c8 mocha",
+    "posttest": "c8 report -r lcov"
   },
   "devDependencies": {
-    "@types/node": "^12.7.2",
-    "@types/mocha": "^7.0.2",
-    "@typescript-eslint/eslint-plugin": "^2.28.0",
-    "@typescript-eslint/parser": "^2.28.0",
+    "@types/node": "^14.0.13",
+    "@typescript-eslint/eslint-plugin": "^3.2.0",
+    "@typescript-eslint/parser": "^3.2.0",
     "c8": "^7.1.0",
-    "eslint": "^6.8.0",
+    "coveralls": "^3.0.6",
+    "eslint": "^7.2.0",
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-filenames": "^1.3.2",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-simple-import-sort": "^5.0.2",
     "mocha": "^7.1.1",
-    "coveralls": "^3.0.6",
-    "prettier": "^1.18.2",
-    "rollup": "^1.20.0",
-    "rollup-plugin-sourcemaps": "^0.4.2",
-    "rollup-plugin-terser": "^5.1.1",
-    "typescript": "^3.9.3"
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.0.5",
+    "rollup": "^2.15.0",
+    "rollup-plugin-sourcemaps": "^0.6.2",
+    "rollup-plugin-terser": "^6.1.0",
+    "typescript": "3.8.3"
   },
   "mocha": {
-    "spec": "tests/**/*Test.js"
+    "spec": "tests/*Test.js"
+  },
+  "volta": {
+    "node": "14.4.0",
+    "yarn": "1.22.4"
   }
 }

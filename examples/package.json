@@ -1,0 +1,9 @@
+{
+  "name": "examples",
+  "version": "0.4.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "race-cancellation": "^0.4.1"
+  }
+}

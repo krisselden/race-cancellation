@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - 'v*' # older version branches
+    tags:
+      - '*'
+  pull_request: {}
+  schedule:
+  - cron:  '0 6 * * 0' # weekly, on sundays
+
+jobs:
+  test:
+    name: "Node ${{ matrix.node }} - ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      matrix:
+        node: ['12', '14', 'latest']
+        os: [ubuntu, macOS, windows]
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: volta-cli/action@v1
+      with:
+        node-version: ${{ matrix.node }}
+    - name: install dependencies
+      run: yarn --frozen-lockfile
+    - name: lint
+      run: yarn lint
+      env:
+        NODE_OPTIONS: --experimental-modules
+        CI: true
+    - name: test
+      run: yarn test:coverage
+      env:
+        NODE_OPTIONS: --experimental-modules
+        CI: true
+
+  floating-dependencies:
+    name: "Floating Dependencies"
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: volta-cli/action@v1
+      with:
+        node-version: latest
+    - name: install dependencies
+      run: yarn --no-lockfile
+    - name: lint
+      run: yarn lint
+      env:
+        NODE_OPTIONS: --experimental-modules
+    - name: test
+      run: yarn test
+      env:
+        NODE_OPTIONS: --experimental-modules

@@ -1,3 +1,4 @@
+/* eslint-env node */
 import sourcemaps from "rollup-plugin-sourcemaps";
 import { terser } from "rollup-plugin-terser";
 
@@ -13,6 +14,9 @@ if (process.env.NODE_ENV === "production") {
       mangle: {
         safari10: true,
       },
+      output: {
+        semicolons: false,
+      },
     })
   );
 }
@@ -22,7 +26,7 @@ export default {
   plugins,
   output: [
     {
-      file: "dist/index.umd.js",
+      file: "dist/index.cjs",
       format: "umd",
       name: "RaceCancellation",
       sourcemap: true,

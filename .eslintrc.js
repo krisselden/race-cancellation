@@ -1,3 +1,4 @@
+/* eslint-env node */
 module.exports = {
   root: true,
   parserOptions: {
@@ -39,10 +40,10 @@ module.exports = {
       parserOptions: {
         project: "./tsconfig.json",
         // allows eslint from any dir
-        tsconfigRootDir: __dirname,
+        tsconfigRootDir: __dirname + "/race-cancellation",
         sourceType: "module",
       },
-      files: ["src/**/*.ts"],
+      files: ["race-cancellation/src/**/*.ts"],
       extends: [
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
       ],
@@ -61,6 +62,7 @@ module.exports = {
       },
       files: ["tests/**/*.js"],
       rules: {
+        "no-undef": "off",
         "@typescript-eslint/no-var-requires": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
       },

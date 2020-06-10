@@ -1,6 +1,10 @@
 const assert = require("assert");
 
-const { withRaceTimeout, cancellableRace, throwIfCancelled } = require("..");
+const {
+  cancellableRace,
+  throwIfCancelled,
+  withRaceTimeout,
+} = require("./helper");
 
 describe("withRaceTimeout", () => {
   it("task success", async () => {
@@ -65,7 +69,7 @@ describe("withRaceTimeout", () => {
     await runTest({
       taskStart() {
         // never resolve task
-        assert.ok(false, "task should not start");
+        assert.fail("task should not start");
       },
     });
 
@@ -125,9 +129,10 @@ function createTimeoutTest(step) {
     step("begin await");
     try {
       const res = throwIfCancelled(
-        await withRaceTimeout(innerRace => innerRace(task), 10)(
-          raceCancellation
-        )
+        await withRaceTimeout(
+          (innerRace) => innerRace(task),
+          10
+        )(raceCancellation)
       );
       step(`await returned: ${res}`);
     } catch (e) {
@@ -147,5 +152,5 @@ function createTimeoutTest(step) {
 function createSteps() {
   /** @type {string[]} */
   const steps = [];
-  return [/** @param {string} step */ step => steps.push(step), steps];
+  return [/** @param {string} step */ (step) => steps.push(step), steps];
 }

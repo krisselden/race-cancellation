@@ -1,11 +1,12 @@
-const {
-  combineRaceCancellation,
-  cancellableRace,
-  throwIfCancelled,
-  noopRaceCancellation,
-} = require("..");
-
+/** @type {import("assert")} */
 const assert = require("assert");
+
+const {
+  cancellableRace,
+  combineRaceCancellation,
+  noopRaceCancellation,
+  throwIfCancelled,
+} = require("./helper");
 
 describe("combineRaceCancellation", () => {
   it("calling combine with a & b both undefined", async () => {
@@ -241,11 +242,11 @@ function createTest(step) {
    */
   async function runTest(delegate) {
     const combinedRace = combineRaceCancellation(
-      task => {
+      (task) => {
         step("race A started");
         return raceA(task);
       },
-      task => {
+      (task) => {
         step("race B started");
         return raceB(task);
       }
@@ -279,5 +280,5 @@ function createTest(step) {
 function createSteps() {
   /** @type {string[]} */
   const steps = [];
-  return [/** @param {string} step */ step => steps.push(step), steps];
+  return [/** @param {string} step */ (step) => steps.push(step), steps];
 }

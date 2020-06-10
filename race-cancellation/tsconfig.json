@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "declaration": true,
-    "sourceMap": true,
+    "target": "ES2018",
+    "moduleResolution": "node",
     "module": "es2015",
-    "target": "es2017",
+    "strict": true,
     "rootDir": "src",
     "outDir": "dist",
+    "declaration": true,
+    "sourceMap": true,
+    "declarationMap": true,
+    "newLine": "lf",
     "lib": ["scripthost", "es2017"],
     "types": [],
     "typeRoots": []

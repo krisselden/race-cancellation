@@ -1,6 +1,7 @@
+/** @type {import("assert")} */
 const assert = require("assert");
 
-const { noopRaceCancellation } = require("..");
+const { noopRaceCancellation } = require("./helper");
 
 describe("noopRaceCancellation", () => {
   it("it just invokes the task", async () => {
