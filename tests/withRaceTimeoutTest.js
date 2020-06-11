@@ -1,10 +1,6 @@
 const assert = require("assert");
 
-const {
-  cancellableRace,
-  throwIfCancelled,
-  withRaceTimeout,
-} = require("./helper");
+const { cancellableRace, withRaceTimeout } = require("./helper");
 
 describe("withRaceTimeout", () => {
   it("task success", async () => {
@@ -56,7 +52,7 @@ describe("withRaceTimeout", () => {
     assert.deepEqual(steps, [
       "begin await",
       "task started",
-      "await threw: TimeoutError: task took longer than 10ms",
+      "await threw: TimeoutError: The operation timed out after taking longer than 10ms",
     ]);
   });
 
@@ -75,7 +71,7 @@ describe("withRaceTimeout", () => {
 
     assert.deepEqual(steps, [
       "begin await",
-      "await threw: CancellationError: outer race cancelled",
+      "await threw: CancelError: outer race cancelled",
     ]);
   });
 
@@ -93,7 +89,7 @@ describe("withRaceTimeout", () => {
     assert.deepEqual(steps, [
       "begin await",
       "task started",
-      "await threw: CancellationError: outer race cancelled",
+      "await threw: CancelError: outer race cancelled",
     ]);
   });
 });
@@ -128,12 +124,10 @@ function createTimeoutTest(step) {
 
     step("begin await");
     try {
-      const res = throwIfCancelled(
-        await withRaceTimeout(
-          (innerRace) => innerRace(task),
-          10
-        )(raceCancellation)
-      );
+      const res = await withRaceTimeout(
+        (innerRace) => innerRace(task),
+        10
+      )(raceCancellation);
       step(`await returned: ${res}`);
     } catch (e) {
       step(`await threw: ${e}`);

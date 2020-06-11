@@ -1,85 +1,68 @@
 /**
- * A symbol that brands a Cancellation.
- *
- * This symbol is a runtime registered symbol so that if multiple
- * versions of the module are loaded it interops.
- *
- * So that for an unknown x
- * isCancellation is
- * `typeof x === "object" && x !== null && Symbol.for("isCancellation") in x`
+ * The default error thrown during from the Promise.race if the cancellation task wins.
  */
-export const cancellationBrand = Symbol.for("isCancellation");
-
-export const enum CancellationKind {
-  /**
-   * General cancellation request.
-   */
-  Cancellation = "Cancellation",
-
-  /**
-   * The task timed out.
-   */
-  Timeout = "Timeout",
-
-  /**
-   * A concurrent branch was the winner in a `Promise.race`
-   * or failed in a `Promise.all`
-   */
-  ShortCircuit = "ShortCircuit",
+export interface CancelError<TName extends string = "CancelError">
+  extends Error {
+  name: TName;
+  isCancelled: true;
 }
 
-export interface Cancellation<Kind extends string = string> {
-  [cancellationBrand]: CancellationPayload<Kind>;
+export interface TimeoutError<TName extends string = "TimeoutError">
+  extends CancelError<TName> {
+  isTimeout: true;
 }
 
-export interface CancellationPayload<Kind extends string = string> {
-  kind: Kind;
-  message: string;
-  [key: string]: unknown;
-}
+/**
+ * Races the specified task against the cancellation.
+ */
+export type RaceCancel = <TResult>(
+  taskOrPromise: Task<TResult> | PromiseLike<TResult>
+) => Promise<TResult>;
 
-export type Complete<Result> = (result: Result) => void;
+/**
+ * An async task.
+ */
+export type Task<TResult> = () => PromiseLike<TResult>;
 
-export type RaceCancellation = <Result>(
-  task: Task<Result> | PromiseLike<Result>
-) => Promise<Result | Cancellation>;
+/**
+ * A cancellable async task.
+ */
+export type CancellableTask<TResult> = (
+  raceCancel: RaceCancel
+) => Promise<TResult>;
 
-export type NewCancellation = () => Cancellation;
+/**
+ * A cancellable async task wrapped with a cancellation concern.
+ *
+ * Can be passed in an outer cancellation concern.
+ */
+export type TaskWithRaceCancel<TResult> = (
+  raceCancel?: RaceCancel
+) => Promise<TResult>;
 
-export type Task<Result> = () => PromiseLike<Result>;
+/**
+ * Runs cleanup should be idempotent and infallible.
+ */
+export type Dispose = () => void;
 
-export type CancellableTask<Result> = (
-  raceCancellation: RaceCancellation
-) => Promise<Result | Cancellation>;
-
-export type OptionallyCancellableTask<Result> = (
-  raceCancellation?: RaceCancellation
-) => Promise<Result | Cancellation>;
-
-export interface Cancel {
-  (cancellation: Cancellation): void;
-  (message?: string, kind?: string): void;
-}
-
-export type CancellableRace = [RaceCancellation, Cancel];
-
-export type Executor<Result> = (
-  resolve: (value?: Result | PromiseLike<Result>) => void,
+/**
+ * A promise executor that can cleanup.
+ *
+ * For example, if it is the promise of a setTimeout, should call clearTimeout.
+ *
+ * If it resolves on an event listener, it should uninstall the event listener
+ */
+export type DisposableExecutor<TResult> = (
+  resolve: (value?: TResult | PromiseLike<TResult>) => void,
   reject: (reason?: unknown) => void
 ) => Dispose;
 
-export type Dispose = () => void;
+export type CancelReason = CancelError<string> | string;
 
-export type NewTimeout = (callback: () => void, ms: number) => Dispose;
+export type CancelCallback = (reason?: CancelReason) => void;
 
-export type NewTimeoutCancellation = () => Cancellation<
-  CancellationKind.Timeout
->;
+export type CancellationTask = (cancel: CancelCallback) => Dispose;
 
-export type IntoCancellation<CancellationResult = unknown> = (
-  result: CancellationResult
-) => Cancellation;
+export type IsCancelled = () => boolean;
 
-export interface CancellationError<Kind extends string = string>
-  extends Error,
-    Cancellation<Kind> {}
+export type OnCancel = (callback: () => void) => void;

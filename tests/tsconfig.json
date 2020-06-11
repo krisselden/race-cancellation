@@ -10,5 +10,5 @@
     "types": ["node", "mocha"],
     "esModuleInterop": true
   },
-  "include": ["globals.d.ts", "*.js"]
+  "include": ["*.js"]
 }

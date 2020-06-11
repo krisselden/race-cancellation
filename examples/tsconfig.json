@@ -3,6 +3,7 @@
     "noEmit": true,
     "strict": true,
     "allowJs": true,
+    "checkJs": true,
     "target": "es2017",
     "moduleResolution": "node",
     "module": "commonjs",
