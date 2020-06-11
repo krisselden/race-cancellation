@@ -1,8 +1,4 @@
-import {
-  cancellableRace,
-  disposablePromise,
-  throwIfCancelled,
-} from "race-cancellation";
+import { cancellableRace, disposablePromise } from "race-cancellation";
 
 const [raceCancellation, cancel] = cancellableRace();
 
@@ -44,12 +40,10 @@ async function myAsyncTask(progress) {
 async function doRealAsyncStep() {
   // `disposablePromise` is helper for real async to
   // ensure cleanup on cancellation
-  throwIfCancelled(
-    await disposablePromise((resolve) => {
-      const id = setTimeout(resolve, 1000);
-      return () => {
-        clearTimeout(id);
-      };
-    }, raceCancellation)
-  );
+  await disposablePromise((resolve) => {
+    const id = setTimeout(resolve, 1000);
+    return () => {
+      clearTimeout(id);
+    };
+  }, raceCancellation);
 }

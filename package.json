@@ -6,14 +6,14 @@
     "examples"
   ],
   "scripts": {
-    "prepare": "yarn workspace race-cancellation prepare",
     "lint": "npm-run-all lint:*",
     "lint:eslint": "eslint .",
-    "lint:tests": "tsc -p tests --noEmit",
     "lint:examples": "tsc -p examples --noEmit",
+    "lint:tests": "tsc -p tests --noEmit",
+    "prepare": "yarn workspace race-cancellation prepare",
     "test": "npm-run-all lint test:coverage",
-    "test:coverage": "c8 mocha",
-    "posttest": "c8 report -r lcov"
+    "posttest": "c8 report -r lcov",
+    "test:coverage": "c8 mocha"
   },
   "devDependencies": {
     "@types/node": "^14.0.13",

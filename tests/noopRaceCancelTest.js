@@ -1,18 +1,18 @@
 /** @type {import("assert")} */
 const assert = require("assert");
 
-const { noopRaceCancellation } = require("./helper");
+const { noopRaceCancel } = require("./helper");
 
-describe("noopRaceCancellation", () => {
+describe("noopRaceCancel", () => {
   it("it just invokes the task", async () => {
     const expected = new Date();
-    const actual = await noopRaceCancellation(() => Promise.resolve(expected));
+    const actual = await noopRaceCancel(() => Promise.resolve(expected));
     assert.equal(actual, expected);
   });
 
   it("it just resolves the promise", async () => {
     const expected = new Date();
-    const actual = await noopRaceCancellation(Promise.resolve(expected));
+    const actual = await noopRaceCancel(Promise.resolve(expected));
     assert.equal(actual, expected);
   });
 });

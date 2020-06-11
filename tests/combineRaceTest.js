@@ -1,36 +1,25 @@
 /** @type {import("assert")} */
 const assert = require("assert");
 
-const {
-  cancellableRace,
-  combineRaceCancellation,
-  noopRaceCancellation,
-  throwIfCancelled,
-} = require("./helper");
+const { cancellableRace, combineRace, noopRaceCancel } = require("./helper");
 
-describe("combineRaceCancellation", () => {
+describe("combineRace", () => {
   it("calling combine with a & b both undefined", async () => {
-    const raceCancellation = combineRaceCancellation(undefined, undefined);
+    const raceCancellation = combineRace(undefined, undefined);
     const expected = new Date();
     const actual = await raceCancellation(() => Promise.resolve(expected));
     assert.equal(actual, expected);
   });
 
   it("calling combine with b as undefined", async () => {
-    const raceCancellation = combineRaceCancellation(
-      noopRaceCancellation,
-      undefined
-    );
+    const raceCancellation = combineRace(noopRaceCancel, undefined);
     const expected = new Date();
     const actual = await raceCancellation(() => Promise.resolve(expected));
     assert.equal(actual, expected);
   });
 
   it("calling combine with a as undefined", async () => {
-    const raceCancellation = combineRaceCancellation(
-      undefined,
-      noopRaceCancellation
-    );
+    const raceCancellation = combineRace(undefined, noopRaceCancel);
     const expected = new Date();
     const actual = await raceCancellation(() => Promise.resolve(expected));
     assert.equal(actual, expected);
@@ -97,7 +86,7 @@ describe("combineRaceCancellation", () => {
     assert.deepEqual(steps, [
       "begin await",
       "race A started",
-      "await threw: CancellationError: A cancelled",
+      "await threw: CancelError: A cancelled",
     ]);
   });
 
@@ -117,7 +106,7 @@ describe("combineRaceCancellation", () => {
       "race A started",
       "race B started",
       "task started",
-      "await threw: CancellationError: A cancelled",
+      "await threw: CancelError: A cancelled",
     ]);
   });
 
@@ -137,7 +126,7 @@ describe("combineRaceCancellation", () => {
       "begin await",
       "race A started",
       "race B started",
-      "await threw: CancellationError: B cancelled",
+      "await threw: CancelError: B cancelled",
     ]);
   });
 
@@ -157,7 +146,7 @@ describe("combineRaceCancellation", () => {
       "race A started",
       "race B started",
       "task started",
-      "await threw: CancellationError: B cancelled",
+      "await threw: CancelError: B cancelled",
     ]);
   });
 
@@ -177,10 +166,9 @@ describe("combineRaceCancellation", () => {
 
     await runTest({
       taskStart(deferred) {
-        // tie should go to result
+        deferred.resolve(expected);
         cancelA();
         cancelB();
-        deferred.resolve(expected);
       },
     });
 
@@ -189,7 +177,7 @@ describe("combineRaceCancellation", () => {
       "race A started",
       "race B started",
       "task started",
-      `await returned: ${expected}`,
+      `await threw: CancelError: A cancelled`,
     ]);
   });
 
@@ -201,10 +189,9 @@ describe("combineRaceCancellation", () => {
 
     await runTest({
       taskStart(deferred) {
-        // tie should go to result
+        deferred.reject(expected);
         cancelA();
         cancelB();
-        deferred.reject(expected);
       },
     });
 
@@ -213,7 +200,7 @@ describe("combineRaceCancellation", () => {
       "race A started",
       "race B started",
       "task started",
-      `await threw: ${expected}`,
+      `await threw: CancelError: A cancelled`,
     ]);
   });
 });
@@ -241,7 +228,7 @@ function createTest(step) {
    * @param {TestDelegate} delegate
    */
   async function runTest(delegate) {
-    const combinedRace = combineRaceCancellation(
+    const combinedRace = combineRace(
       (task) => {
         step("race A started");
         return raceA(task);
@@ -253,14 +240,12 @@ function createTest(step) {
     );
     try {
       step("begin await");
-      const res = throwIfCancelled(
-        await combinedRace(() => {
-          step("task started");
-          return new Promise((resolve, reject) => {
-            delegate.taskStart({ resolve, reject });
-          });
-        })
-      );
+      const res = await combinedRace(() => {
+        step("task started");
+        return new Promise((resolve, reject) => {
+          delegate.taskStart({ resolve, reject });
+        });
+      });
       step(`await returned: ${res}`);
     } catch (e) {
       step(`await threw: ${e}`);

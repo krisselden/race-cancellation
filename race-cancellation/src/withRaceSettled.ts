@@ -1,10 +1,9 @@
-import newCancellableRace from "./cancellableRace.js";
-import combineRaceCancellation from "./combineRaceCancellation.js";
+import cancellableRace from "./cancellableRace.js";
+import combineRace from "./combineRace.js";
 import {
   CancellableTask,
-  CancellationKind,
-  OptionallyCancellableTask,
-  RaceCancellation,
+  RaceCancel,
+  TaskWithRaceCancel,
 } from "./interfaces.js";
 
 /**
@@ -17,19 +16,16 @@ import {
  * @param task a cancellable task
  * @returns an optionally cancellable task
  */
-export default function withRaceSettled<Result>(
-  task: CancellableTask<Result>
-): OptionallyCancellableTask<Result> {
-  const [raceWinner, cancelLosers] = newCancellableRace();
-
-  return async (raceCancellation?: RaceCancellation) => {
+export default function withRaceSettled<TResult>(
+  task: CancellableTask<TResult>
+): TaskWithRaceCancel<TResult> {
+  const [raceSettled, cancel] = cancellableRace();
+  return async (raceCancel?: RaceCancel) => {
     try {
-      const combined = combineRaceCancellation(raceCancellation, raceWinner);
-      return await task(combined);
+      return await task(combineRace(raceCancel, raceSettled));
     } finally {
-      cancelLosers(
-        "the task was short-circuited by another concurrent task winning a Promise.race or rejecting a Promise.all",
-        CancellationKind.ShortCircuit
+      cancel(
+        "The operation was cancelled because it was still pending when another concurrent promise either rejected in a Promise.all() or won in a Promise.race()."
       );
     }
   };

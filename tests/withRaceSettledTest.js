@@ -1,10 +1,10 @@
 /** @type {import("assert")} */
 const assert = require("assert");
 
-const { throwIfCancelled, withRaceSettled } = require("./helper");
+const { withRaceSettled } = require("./helper");
 
 /**
- * @typedef {import("race-cancellation").RaceCancellation} RaceCancellation
+ * @typedef {import("race-cancellation").RaceCancel} RaceCancel
  */
 
 describe("withRaceSettled", () => {
@@ -36,18 +36,16 @@ describe("withRaceSettled", () => {
     const steps = [];
     const step = /** @param {string} step */ (step) => void steps.push(step);
     /**
-     * @param {RaceCancellation} raceCancel
+     * @param {RaceCancel} raceCancel
      */
     async function cancellableSubtask(raceCancel) {
       try {
         step("subtask: await raceCancel");
-        throwIfCancelled(
-          await raceCancel(
-            () =>
-              new Promise(() => {
-                // never resolving promise
-              })
-          )
+        await raceCancel(
+          () =>
+            new Promise(() => {
+              // never resolving promise
+            })
         );
         step("subtask: unreachable");
       } catch (e) {
@@ -82,7 +80,7 @@ describe("withRaceSettled", () => {
       "task: await all",
       "subtask: await raceCancel",
       "error: Error: some error",
-      "subtask: error: ShortCircuitError: the task was short-circuited by another concurrent task winning a Promise.race or rejecting a Promise.all",
+      "subtask: error: CancelError: The operation was cancelled because it was still pending when another concurrent promise either rejected in a Promise.all() or won in a Promise.race().",
       "subtask: finally",
     ]);
   });
