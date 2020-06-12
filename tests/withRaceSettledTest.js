@@ -11,7 +11,7 @@ describe("withRaceSettled", () => {
   it("resolves with the result of the task", async () => {
     const expected = { result: "result" };
 
-    const task = withRaceSettled(async () => expected);
+    const task = withRaceSettled(() => Promise.resolve(expected));
 
     /** @type {unknown} */
     const actual = await task();
@@ -20,14 +20,14 @@ describe("withRaceSettled", () => {
   });
 
   it("rejects if task function rejects", async () => {
-    const task = withRaceSettled(async () => {
+    const task = withRaceSettled(() => {
       throw Error("some error");
     });
     try {
       await task();
       assert.ok(false, "did not reject with task error");
     } catch (e) {
-      assert.equal(e.message, "some error");
+      assert.equal(e instanceof Error && e.message, "some error");
     }
   });
 
@@ -49,7 +49,7 @@ describe("withRaceSettled", () => {
         );
         step("subtask: unreachable");
       } catch (e) {
-        step(`subtask: error: ${e}`);
+        step(`subtask: error: ${String(e)}`);
       } finally {
         step("subtask: finally");
       }
@@ -69,7 +69,7 @@ describe("withRaceSettled", () => {
       step(`await runTask`);
       await task();
     } catch (e) {
-      step(`error: ${e}`);
+      step(`error: ${String(e)}`);
     }
 
     // raceExit should finish out pending

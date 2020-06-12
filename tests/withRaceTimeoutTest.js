@@ -7,7 +7,7 @@ describe("withRaceTimeout", () => {
     const [step, steps] = createSteps();
     const { runTest } = createTimeoutTest(step);
 
-    const expected = new Date();
+    const expected = new Date().toString();
     await runTest({
       taskStart({ resolve }) {
         resolve(expected);
@@ -25,7 +25,7 @@ describe("withRaceTimeout", () => {
     const [step, steps] = createSteps();
     const { runTest } = createTimeoutTest(step);
 
-    const expected = new Date();
+    const expected = new Date().toString();
     await runTest({
       taskStart({ reject }) {
         reject(expected);
@@ -124,13 +124,13 @@ function createTimeoutTest(step) {
 
     step("begin await");
     try {
-      const res = await withRaceTimeout(
+      const res = await /** @type {Promise<unknown>} */ (withRaceTimeout(
         (innerRace) => innerRace(task),
         10
-      )(raceCancellation);
-      step(`await returned: ${res}`);
+      )(raceCancellation));
+      step(`await returned: ${String(res)}`);
     } catch (e) {
-      step(`await threw: ${e}`);
+      step(`await threw: ${String(e)}`);
     }
   }
 

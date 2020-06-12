@@ -60,7 +60,16 @@ module.exports = {
         mocha: true,
         es6: true,
       },
+      parserOptions: {
+        project: "./tsconfig.json",
+        // allows eslint from any dir
+        tsconfigRootDir: __dirname + "/tests",
+        sourceType: "module",
+      },
       files: ["tests/**/*.js"],
+      extends: [
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+      ],
       rules: {
         "no-undef": "off",
         "@typescript-eslint/no-var-requires": "off",
@@ -72,6 +81,15 @@ module.exports = {
         node: true,
         es6: true,
       },
+      parserOptions: {
+        project: "./tsconfig.json",
+        // allows eslint from any dir
+        tsconfigRootDir: __dirname + "/examples",
+        sourceType: "module",
+      },
+      extends: [
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+      ],
       files: ["examples/**/*.js"],
       rules: {
         "@typescript-eslint/no-var-requires": "off",

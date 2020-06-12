@@ -29,7 +29,7 @@ describe("combineRace", () => {
     const [step, steps] = createSteps();
     const { runTest, cancelA, cancelB } = createTest(step);
 
-    const expected = new Date();
+    const expected = new Date().toString();
     await runTest({
       taskStart(deferred) {
         deferred.resolve(expected);
@@ -52,7 +52,7 @@ describe("combineRace", () => {
     const [step, steps] = createSteps();
     const { runTest, cancelA, cancelB } = createTest(step);
 
-    const expected = new Date();
+    const expected = new Date().toString();
     await runTest({
       taskStart(deferred) {
         deferred.reject(expected);
@@ -242,13 +242,15 @@ function createTest(step) {
       step("begin await");
       const res = await combinedRace(() => {
         step("task started");
-        return new Promise((resolve, reject) => {
-          delegate.taskStart({ resolve, reject });
-        });
+        return /** @type {Promise<unknown>} */ (new Promise(
+          (resolve, reject) => {
+            delegate.taskStart({ resolve, reject });
+          }
+        ));
       });
-      step(`await returned: ${res}`);
+      step(`await returned: ${String(res)}`);
     } catch (e) {
-      step(`await threw: ${e}`);
+      step(`await threw: ${String(e)}`);
     }
   }
 

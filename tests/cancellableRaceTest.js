@@ -14,7 +14,7 @@ describe("cancellableRace", () => {
       await raceCancellation(task);
       assert.fail("expected failure");
     } catch (e) {
-      assert.equal(e.message, "failed task");
+      assert.equal(e instanceof Error && e.message, "failed task");
     }
   });
 });

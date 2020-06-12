@@ -4,7 +4,7 @@ const [raceCancellation, cancel] = cancellableRace();
 
 process.on("SIGINT", cancel);
 
-main();
+void main();
 
 /**
  * Cancellable async main with graceful termination on cancel.
@@ -17,7 +17,7 @@ async function main() {
     });
     console.log(`main done: ${result}`);
   } catch (e) {
-    console.error(e.stack);
+    console.error("%o", e);
     // let node exit naturally
     process.exitCode = 1;
   } finally {
