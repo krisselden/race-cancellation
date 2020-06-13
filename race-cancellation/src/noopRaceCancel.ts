@@ -1,14 +1,20 @@
-import { RaceCancel, Task } from "./interfaces.js";
+import { AsyncFn, RaceCancelFn } from "./interfaces.js";
 
 /**
- * Allows an async function to add raceCancellation as an optional param
- * in a backwards compatible way by using this as the default.
+ * A no-op implemenation of a {@link RaceCancelFn} function.
+ *
+ * @remarks
+ * Allows an async function to add cancellation support in a backwards compatible way by
+ * adding optional param by providing this as a default.
+ *
+ * @param asyncFnOrPromise - an {@link AsyncFn} or `PromiseLike` that will be resolved.
+ * @public
  */
-const noopRaceCancel: RaceCancel = <TResult>(
-  task: Task<TResult> | PromiseLike<TResult>
+const noopRaceCancel: RaceCancelFn = <TResult>(
+  asyncFnOrPromise: AsyncFn<TResult> | PromiseLike<TResult>
 ): Promise<TResult> =>
-  typeof task === "function"
-    ? Promise.resolve().then(task)
-    : Promise.resolve(task);
+  typeof asyncFnOrPromise === "function"
+    ? Promise.resolve().then(asyncFnOrPromise)
+    : Promise.resolve(asyncFnOrPromise);
 
 export default noopRaceCancel;

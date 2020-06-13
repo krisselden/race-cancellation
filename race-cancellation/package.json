@@ -27,16 +27,19 @@
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/race-cancellation.d.ts",
   "scripts": {
     "build": "tsc && rollup -c",
-    "prepare": "yarn build"
+    "docs": "api-extractor run --local && api-documenter markdown -i ./temp -o ./docs",
+    "prepare": "npm-run-all build docs"
   },
   "devDependencies": {
+    "@microsoft/api-documenter": "^7.8.12",
+    "@microsoft/api-extractor": "^7.8.11",
     "rollup": "^1.20.0",
     "rollup-plugin-sourcemaps": "^0.4.2",
     "rollup-plugin-terser": "^5.1.1",
-    "typescript": "3.8.3"
+    "typescript": "3.7.5"
   },
   "exports": {
     "import": "./dist/index.js",

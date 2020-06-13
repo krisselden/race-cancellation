@@ -6,6 +6,7 @@
     "examples"
   ],
   "scripts": {
+    "docs": "yarn workspace race-cancellation docs",
     "lint": "npm-run-all lint:*",
     "lint:eslint": "eslint .",
     "lint:examples": "tsc -p examples --noEmit",
