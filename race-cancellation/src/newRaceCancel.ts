@@ -1,29 +1,38 @@
 import {
+  CancelError,
+  CancelExecutor,
   CancelReason,
   IsCancelled,
-  OnCancel,
   RaceCancel,
   Task,
 } from "./interfaces.js";
-import intoCancelError from "./intoCancelError.js";
 
-const cancelToken = Symbol("cancelled");
+// we are casting the sentinel value to a unique symbol
+// to get === union narrowing
+const sentinelValue: unique symbol = {
+  toString: () => "[cancel sentinel]",
+} as never;
+
+type CancelTask = () => Promise<CancelSentinelValue>;
+type CancelSentinelValue = typeof sentinelValue;
 
 /**
  * Create a race cancellation function.
  *
- * @param isCancelled a function that returns whether or not we are currently cancelled
- * @param onCancel a callback that receives a callback for the cancel event
- * @param cancelReason an optional reason for the cancellation
+ * @param isCancelled - a function that returns whether or not we are currently cancelled
+ * @param executor - a callback to resolve the cancellation
+ * @param cancelReason - an optional reason for the cancellation
+ * @public
  */
 export default function newRaceCancel(
   isCancelled: IsCancelled,
-  onCancel: OnCancel,
+  executor: CancelExecutor,
   cancelReason?: (() => CancelReason | undefined) | CancelReason
 ): RaceCancel {
+  const cancelTask = memoizeCancel(isCancelled, executor);
   return async (taskOrPromise) =>
     throwIfCancelled(
-      await raceCancel(taskOrPromise, isCancelled, onCancel),
+      await raceCancel(taskOrPromise, isCancelled, cancelTask),
       cancelReason
     );
 }
@@ -31,53 +40,62 @@ export default function newRaceCancel(
 function raceCancel<TResult>(
   taskOrPromise: Task<TResult> | PromiseLike<TResult>,
   isCancelled: IsCancelled,
-  onCancel: OnCancel
-): Promise<TResult | typeof cancelToken> {
-  if (typeof taskOrPromise === "function") {
-    return raceCancelVersusTask(taskOrPromise, isCancelled, onCancel);
-  }
-  return raceCancelVersusPromise(taskOrPromise, isCancelled, onCancel);
-}
-
-function raceCancelVersusTask<TResult>(
-  task: Task<TResult>,
-  isCancelled: IsCancelled,
-  onCancel: OnCancel
-): Promise<TResult | typeof cancelToken> {
-  // if cancelled we don't bother starting the task
-  // it is imperative that the task doesn't close over floating promises
-  // unless those floating promises are cached and already chained to
-  // something else, since we do not start the task if it is already
-  // cancelled
-  return isCancelled()
-    ? Promise.resolve(cancelToken)
-    : // ensure we create the promise chain before invoking the user task
-      Promise.race([Promise.resolve().then(task), waitForCancel(onCancel)]);
-}
-
-function raceCancelVersusPromise<TResult>(
-  promise: PromiseLike<TResult>,
-  isCancelled: IsCancelled,
-  onCancel: OnCancel
-): Promise<TResult | typeof cancelToken> {
-  // even if we are already cancelled we still need to ensure the floating
-  // promise gets chained or it could cause an unhandled rejection
-  return Promise.race([
-    promise,
-    isCancelled() ? Promise.resolve(cancelToken) : waitForCancel(onCancel),
-  ]);
+  cancelTask: CancelTask
+): Promise<TResult | CancelSentinelValue> {
+  return typeof taskOrPromise === "function"
+    ? isCancelled()
+      ? cancelTask()
+      : Promise.race([taskOrPromise(), cancelTask()])
+    : Promise.race([taskOrPromise, cancelTask()]);
 }
 
 function throwIfCancelled<TResult>(
-  result: TResult | typeof cancelToken,
+  result: TResult | CancelSentinelValue,
   cancelReason?: (() => CancelReason | undefined) | CancelReason
 ): TResult {
-  if (result === cancelToken) {
+  if (result === sentinelValue) {
     throw intoCancelError(cancelReason);
   }
   return result;
 }
 
-function waitForCancel(onCancel: OnCancel): Promise<typeof cancelToken> {
-  return new Promise((resolve) => onCancel(() => resolve(cancelToken)));
+function memoizeCancel(
+  isCancelled: IsCancelled,
+  executor: CancelExecutor
+): CancelTask {
+  let promise: Promise<CancelSentinelValue> | undefined;
+  return () => {
+    if (promise === undefined) {
+      promise = isCancelled()
+        ? Promise.resolve(sentinelValue)
+        : waitForCancel(executor);
+    }
+    return promise;
+  };
+}
+
+async function waitForCancel(
+  cancelExecutor: CancelExecutor
+): Promise<CancelSentinelValue> {
+  await new Promise(cancelExecutor);
+  return sentinelValue;
+}
+
+function intoCancelError(
+  cancelReason?: (() => CancelReason | undefined) | CancelReason
+): CancelError<string> {
+  if (typeof cancelReason === "function") {
+    cancelReason = cancelReason();
+  }
+  if (cancelReason === undefined || typeof cancelReason === "string") {
+    return newCancelError(cancelReason);
+  }
+  return cancelReason;
+}
+
+function newCancelError(message = "The operation was cancelled"): CancelError {
+  const cancelError = new Error(message) as CancelError;
+  cancelError.name = "CancelError";
+  cancelError.isCancelled = true;
+  return cancelError;
 }

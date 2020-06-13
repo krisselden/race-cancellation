@@ -1,5 +1,5 @@
+import defaultRaceCancel from "./defaultRaceCancel.js";
 import { RaceCancel } from "./interfaces.js";
-import noopRaceCancel from "./noopRaceCancel.js";
 
 /**
  * Returns a RaceCancel function that is the combination of two RaceCancel function.
@@ -8,14 +8,16 @@ import noopRaceCancel from "./noopRaceCancel.js";
  * are optional. If a is undefined, then b is retuned, if b is undefined then a
  * is returned, and if they both are undefined a noop race that just invokes
  * the task is returned.
+ *
+ * @public
  */
-export default function combineRace(
-  outer: RaceCancel | undefined,
-  inner: RaceCancel | undefined
+export default function composeRaceCancel(
+  inner: RaceCancel | undefined,
+  outer?: RaceCancel | undefined
 ): RaceCancel {
   return outer === undefined
     ? inner === undefined
-      ? noopRaceCancel
+      ? defaultRaceCancel
       : inner
     : inner === undefined
     ? outer

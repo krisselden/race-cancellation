@@ -1,14 +1,16 @@
-import { DisposableExecutor, Dispose } from "./interfaces.js";
-import noopRaceCancel from "./noopRaceCancel.js";
+import defaultRaceCancel from "./defaultRaceCancel.js";
+import { DisposableExecutor, Dispose, RaceCancel } from "./interfaces.js";
 
 /**
- * Creates a Promise that will cleanup on cancel.
- * @param executor just like a Promise executor but returns a cleanup function.
- * @param raceCancel a RaceCancel function that
+ * Creates a Promise from an executor that returns a {@link Dispose} function.
+ *
+ * @param executor - a {@link DisposableExecutor} function.
+ * @param raceCancel - a {@link RaceCancel} function to race against.
+ * @public
  */
 export default async function disposablePromise<TResult>(
   executor: DisposableExecutor<TResult>,
-  raceCancel = noopRaceCancel
+  raceCancel: RaceCancel = defaultRaceCancel
 ): Promise<TResult> {
   let dispose: Dispose | undefined;
   try {

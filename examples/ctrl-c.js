@@ -1,10 +1,23 @@
-import { cancellableRace, disposablePromise } from "race-cancellation";
+import { disposablePromise, withDisposableCancel } from "race-cancellation";
 
-const [raceCancellation, cancel] = cancellableRace();
-
-process.on("SIGINT", cancel);
+// Graceful exit on SIGINT
 
 void main();
+
+/**
+ * Run a cancellable task with cancellation on SIGINT.
+ *
+ * @template T
+ * @param {import("race-cancellation").CancellableTask<T>} cancellableTask
+ */
+function withCtrlC(cancellableTask) {
+  return withDisposableCancel(cancellableTask, (resolve) => {
+    process.on("SIGINT", resolve);
+    return () => process.off("SIGINT", resolve);
+  });
+}
+
+process.stdout.setNoDelay(true);
 
 /**
  * Cancellable async main with graceful termination on cancel.
@@ -12,8 +25,13 @@ void main();
 async function main() {
   console.log("main started");
   try {
-    const result = await myAsyncTask((step, total) => {
-      console.log(`main progress: ${step} of ${total}`);
+    const result = await withCtrlC(async (raceCancel) => {
+      for (let i = 0; i < 8; i++) {
+        process.stdout.write(`waiting on step ${i + 1} of 8 …`);
+        await doRealAsyncStep(raceCancel);
+        process.stdout.write(` done.\n`);
+      }
+      return "some result";
     });
     console.log(`main done: ${result}`);
   } catch (e) {
@@ -21,29 +39,23 @@ async function main() {
     // let node exit naturally
     process.exitCode = 1;
   } finally {
-    // do cleanup, like remove tmp files
-    console.log("main finalized");
+    // do cancellable async cleanup
+    await withCtrlC(async (raceCancel) => {
+      process.stdout.write(`cleaning up …`);
+      await doRealAsyncStep(raceCancel);
+      process.stdout.write(` done.\n`);
+    });
   }
 }
 
 /**
- * @param {(i: number, t: number) => void} progress
+ * @param {import("race-cancellation").RaceCancel} raceCancel
  */
-async function myAsyncTask(progress) {
-  for (let i = 0; i < 8; i++) {
-    await doRealAsyncStep();
-    progress(i + 1, 8);
-  }
-  return "some result";
-}
-
-async function doRealAsyncStep() {
-  // `disposablePromise` is helper for real async to
-  // ensure cleanup on cancellation
-  await disposablePromise((resolve) => {
+function doRealAsyncStep(raceCancel) {
+  return disposablePromise((resolve) => {
     const id = setTimeout(resolve, 1000);
     return () => {
       clearTimeout(id);
     };
-  }, raceCancellation);
+  }, raceCancel);
 }

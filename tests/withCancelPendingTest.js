@@ -1,30 +1,27 @@
 /** @type {import("assert")} */
 const assert = require("assert");
 
-const { withRaceSettled } = require("./helper");
+const { withCancelPending } = require("./helper");
 
 /**
  * @typedef {import("race-cancellation").RaceCancel} RaceCancel
  */
 
-describe("withRaceSettled", () => {
+describe("withCancelPending", () => {
   it("resolves with the result of the task", async () => {
     const expected = { result: "result" };
 
-    const task = withRaceSettled(() => Promise.resolve(expected));
-
     /** @type {unknown} */
-    const actual = await task();
+    const actual = await withCancelPending(() => Promise.resolve(expected));
 
     assert.strictEqual(actual, expected);
   });
 
   it("rejects if task function rejects", async () => {
-    const task = withRaceSettled(() => {
-      throw Error("some error");
-    });
     try {
-      await task();
+      await withCancelPending(() => {
+        throw Error("some error");
+      });
       assert.ok(false, "did not reject with task error");
     } catch (e) {
       assert.equal(e instanceof Error && e.message, "some error");
@@ -55,24 +52,23 @@ describe("withRaceSettled", () => {
       }
     }
 
-    const task = withRaceSettled(async (raceExit) => {
-      step(`task: await all`);
-
-      await Promise.all([
-        Promise.reject(new Error("some error")),
-        cancellableSubtask(raceExit),
-      ]);
-      step(`task: unreachable`);
-    });
-
     try {
       step(`await runTask`);
-      await task();
+      await withCancelPending(async (raceSettled) => {
+        step(`task: await all`);
+
+        await Promise.all([
+          Promise.reject(new Error("some error")),
+          cancellableSubtask(raceSettled),
+        ]);
+        step(`task: unreachable`);
+      });
     } catch (e) {
       step(`error: ${String(e)}`);
     }
 
-    // raceExit should finish out pending
+    // short circuited promises will be cancelled by the end of the microtask queue
+    // we need to setTimeout to get beyond the current microtask flush
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     assert.deepEqual(steps, [

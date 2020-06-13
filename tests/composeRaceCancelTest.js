@@ -1,33 +1,37 @@
 /** @type {import("assert")} */
 const assert = require("assert");
 
-const { cancellableRace, combineRace, noopRaceCancel } = require("./helper");
+const {
+  deferCancel,
+  composeRaceCancel,
+  defaultRaceCancel,
+} = require("./helper");
 
-describe("combineRace", () => {
+describe("composeRaceCancel", () => {
   it("calling combine with a & b both undefined", async () => {
-    const raceCancellation = combineRace(undefined, undefined);
+    const raceCancel = composeRaceCancel(undefined, undefined);
     const expected = new Date();
-    const actual = await raceCancellation(() => Promise.resolve(expected));
+    const actual = await raceCancel(() => Promise.resolve(expected));
     assert.equal(actual, expected);
   });
 
   it("calling combine with b as undefined", async () => {
-    const raceCancellation = combineRace(noopRaceCancel, undefined);
+    const raceCancel = composeRaceCancel(defaultRaceCancel, undefined);
     const expected = new Date();
-    const actual = await raceCancellation(() => Promise.resolve(expected));
+    const actual = await raceCancel(() => Promise.resolve(expected));
     assert.equal(actual, expected);
   });
 
   it("calling combine with a as undefined", async () => {
-    const raceCancellation = combineRace(undefined, noopRaceCancel);
+    const raceCancel = composeRaceCancel(undefined, defaultRaceCancel);
     const expected = new Date();
-    const actual = await raceCancellation(() => Promise.resolve(expected));
+    const actual = await raceCancel(() => Promise.resolve(expected));
     assert.equal(actual, expected);
   });
 
   it("task success", async () => {
     const [step, steps] = createSteps();
-    const { runTest, cancelA, cancelB } = createTest(step);
+    const { runTest, cancelOuter, cancelInner } = createTest(step);
 
     const expected = new Date().toString();
     await runTest({
@@ -36,13 +40,13 @@ describe("combineRace", () => {
       },
     });
 
-    cancelA();
-    cancelB();
+    cancelOuter();
+    cancelInner();
 
     assert.deepEqual(steps, [
       "begin await",
-      "race A started",
-      "race B started",
+      "race Outer started",
+      "race Inner started",
       "task started",
       `await returned: ${expected}`,
     ]);
@@ -50,7 +54,7 @@ describe("combineRace", () => {
 
   it("task error", async () => {
     const [step, steps] = createSteps();
-    const { runTest, cancelA, cancelB } = createTest(step);
+    const { runTest, cancelOuter, cancelInner } = createTest(step);
 
     const expected = new Date().toString();
     await runTest({
@@ -59,23 +63,23 @@ describe("combineRace", () => {
       },
     });
 
-    cancelA();
-    cancelB();
+    cancelOuter();
+    cancelInner();
 
     assert.deepEqual(steps, [
       "begin await",
-      "race A started",
-      "race B started",
+      "race Outer started",
+      "race Inner started",
       "task started",
       `await threw: ${expected}`,
     ]);
   });
 
-  it("cancel A before race", async () => {
+  it("cancel Outer before race", async () => {
     const [step, steps] = createSteps();
-    const { runTest, cancelA } = createTest(step);
+    const { runTest, cancelOuter } = createTest(step);
 
-    cancelA();
+    cancelOuter();
 
     await runTest({
       taskStart() {
@@ -85,36 +89,36 @@ describe("combineRace", () => {
 
     assert.deepEqual(steps, [
       "begin await",
-      "race A started",
-      "await threw: CancelError: A cancelled",
+      "race Outer started",
+      "await threw: CancelError: Outer cancelled",
     ]);
   });
 
-  it("cancel A after race", async () => {
+  it("cancel Outer after race", async () => {
     const [step, steps] = createSteps();
-    const { runTest, cancelA } = createTest(step);
+    const { runTest, cancelOuter } = createTest(step);
 
     await runTest({
       taskStart() {
-        cancelA();
+        cancelOuter();
         // never resolve task
       },
     });
 
     assert.deepEqual(steps, [
       "begin await",
-      "race A started",
-      "race B started",
+      "race Outer started",
+      "race Inner started",
       "task started",
-      "await threw: CancelError: A cancelled",
+      "await threw: CancelError: Outer cancelled",
     ]);
   });
 
-  it("cancel B before race", async () => {
+  it("cancel Inner before race", async () => {
     const [step, steps] = createSteps();
-    const { runTest, cancelB } = createTest(step);
+    const { runTest, cancelInner } = createTest(step);
 
-    cancelB();
+    cancelInner();
 
     await runTest({
       taskStart() {
@@ -124,29 +128,29 @@ describe("combineRace", () => {
 
     assert.deepEqual(steps, [
       "begin await",
-      "race A started",
-      "race B started",
-      "await threw: CancelError: B cancelled",
+      "race Outer started",
+      "race Inner started",
+      "await threw: CancelError: Inner cancelled",
     ]);
   });
 
-  it("cancel B after race", async () => {
+  it("cancel Inner after race", async () => {
     const [step, steps] = createSteps();
-    const { runTest, cancelB } = createTest(step);
+    const { runTest, cancelInner } = createTest(step);
 
     await runTest({
       taskStart() {
-        cancelB();
+        cancelInner();
         // never resolve task
       },
     });
 
     assert.deepEqual(steps, [
       "begin await",
-      "race A started",
-      "race B started",
+      "race Outer started",
+      "race Inner started",
       "task started",
-      "await threw: CancelError: B cancelled",
+      "await threw: CancelError: Inner cancelled",
     ]);
   });
 
@@ -160,47 +164,47 @@ describe("combineRace", () => {
   // is not able to win a tie of them resolving at the same time.
   it("tied with resolve", async () => {
     const [step, steps] = createSteps();
-    const { runTest, cancelA, cancelB } = createTest(step);
+    const { runTest, cancelOuter, cancelInner } = createTest(step);
 
     const expected = new Date();
 
     await runTest({
       taskStart(deferred) {
         deferred.resolve(expected);
-        cancelA();
-        cancelB();
+        cancelOuter();
+        cancelInner();
       },
     });
 
     assert.deepEqual(steps, [
       "begin await",
-      "race A started",
-      "race B started",
+      "race Outer started",
+      "race Inner started",
       "task started",
-      `await threw: CancelError: A cancelled`,
+      `await threw: CancelError: Outer cancelled`,
     ]);
   });
 
   it("tied with reject", async () => {
     const [step, steps] = createSteps();
-    const { runTest, cancelA, cancelB } = createTest(step);
+    const { runTest, cancelOuter, cancelInner } = createTest(step);
 
     const expected = new Date();
 
     await runTest({
       taskStart(deferred) {
         deferred.reject(expected);
-        cancelA();
-        cancelB();
+        cancelOuter();
+        cancelInner();
       },
     });
 
     assert.deepEqual(steps, [
       "begin await",
-      "race A started",
-      "race B started",
+      "race Outer started",
+      "race Inner started",
       "task started",
-      `await threw: CancelError: A cancelled`,
+      `await threw: CancelError: Outer cancelled`,
     ]);
   });
 });
@@ -220,22 +224,22 @@ describe("combineRace", () => {
  * @param {(step: string) => void} step
  */
 function createTest(step) {
-  const [raceA, cancelA] = cancellableRace();
+  const [raceOuter, cancelOuter] = deferCancel();
 
-  const [raceB, cancelB] = cancellableRace();
+  const [raceInner, cancelInner] = deferCancel();
 
   /**
    * @param {TestDelegate} delegate
    */
   async function runTest(delegate) {
-    const combinedRace = combineRace(
+    const combinedRace = composeRaceCancel(
       (task) => {
-        step("race A started");
-        return raceA(task);
+        step("race Inner started");
+        return raceInner(task);
       },
       (task) => {
-        step("race B started");
-        return raceB(task);
+        step("race Outer started");
+        return raceOuter(task);
       }
     );
     try {
@@ -255,8 +259,8 @@ function createTest(step) {
   }
 
   return {
-    cancelA: () => cancelA("A cancelled"),
-    cancelB: () => cancelB("B cancelled"),
+    cancelOuter: () => cancelOuter("Outer cancelled"),
+    cancelInner: () => cancelInner("Inner cancelled"),
     runTest: runTest,
   };
 }
