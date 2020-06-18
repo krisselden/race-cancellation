@@ -1,8 +1,8 @@
 const assert = require("assert");
 
-const { cancellableRace, withRaceTimeout } = require("./helper");
+const { deferCancel, withTimeout } = require("./helper");
 
-describe("withRaceTimeout", () => {
+describe("withTimeout", () => {
   it("task success", async () => {
     const [step, steps] = createSteps();
     const { runTest } = createTimeoutTest(step);
@@ -109,7 +109,7 @@ describe("withRaceTimeout", () => {
  * @param {(step: string) => void} step
  */
 function createTimeoutTest(step) {
-  const [raceCancellation, cancel] = cancellableRace();
+  const [outerRaceCancel, cancelOuter] = deferCancel();
 
   /**
    * @param {TimeoutTestDelegate} delegate
@@ -124,10 +124,11 @@ function createTimeoutTest(step) {
 
     step("begin await");
     try {
-      const res = await /** @type {Promise<unknown>} */ (withRaceTimeout(
-        (innerRace) => innerRace(task),
-        10
-      )(raceCancellation));
+      const res = await /** @type {Promise<unknown>} */ (withTimeout(
+        (raceOuterCancelOrTimeout) => raceOuterCancelOrTimeout(task),
+        10,
+        outerRaceCancel
+      ));
       step(`await returned: ${String(res)}`);
     } catch (e) {
       step(`await threw: ${String(e)}`);
@@ -135,7 +136,7 @@ function createTimeoutTest(step) {
   }
 
   return {
-    cancel: () => cancel("outer race cancelled"),
+    cancel: () => cancelOuter("outer race cancelled"),
     runTest,
   };
 }

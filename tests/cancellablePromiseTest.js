@@ -1,12 +1,12 @@
 /** @type {import("assert")} */
 const assert = require("assert");
 
-const { disposablePromise } = require("./helper");
+const { cancellablePromise } = require("./helper");
 
-describe("disposablePromise", () => {
+describe("cancellablePromise", () => {
   it("works without passing a raceCancellation arg", async () => {
     const expected = new Date();
-    const actual = await /** @type {Promise<unknown>} */ (disposablePromise(
+    const actual = await /** @type {Promise<unknown>} */ (cancellablePromise(
       (resolve) => {
         resolve(expected);
         return () => void 0;

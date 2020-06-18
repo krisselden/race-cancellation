@@ -1,11 +1,11 @@
 /** @type {import("assert")} */
 const assert = require("assert");
 
-const { cancellableRace } = require("./helper");
+const { deferCancel } = require("./helper");
 
-describe("cancellableRace", () => {
+describe("deferCancel", () => {
   it("cancel before race already rejected promise", async () => {
-    const [raceCancellation, cancel] = cancellableRace();
+    const [raceCancellation, cancel] = deferCancel();
 
     cancel();
     const task = Promise.reject(new Error("failed task"));
