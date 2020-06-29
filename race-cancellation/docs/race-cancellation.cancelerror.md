@@ -11,6 +11,7 @@ The Error interface for cancellation rejection.
 ```typescript
 export interface CancelError<TName extends string = "CancelError"> extends Error 
 ```
+<b>Extends:</b> Error
 
 ## Properties
 

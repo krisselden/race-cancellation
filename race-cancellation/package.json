@@ -34,12 +34,12 @@
     "prepare": "npm-run-all build docs"
   },
   "devDependencies": {
-    "@microsoft/api-documenter": "^7.8.12",
-    "@microsoft/api-extractor": "^7.8.11",
-    "rollup": "^1.20.0",
-    "rollup-plugin-sourcemaps": "^0.4.2",
-    "rollup-plugin-terser": "^5.1.1",
-    "typescript": "3.7.5"
+    "@microsoft/api-documenter": "^7.8.19",
+    "@microsoft/api-extractor": "^7.8.15",
+    "rollup": "^2.18.1",
+    "rollup-plugin-sourcemaps": "^0.6.2",
+    "rollup-plugin-terser": "^6.1.0",
+    "typescript": "~3.7.2"
   },
   "exports": {
     "import": "./dist/index.js",
