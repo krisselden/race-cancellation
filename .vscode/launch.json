@@ -12,6 +12,15 @@
       "args": ["-u", "bdd", "--timeout", "999999", "--colors"],
       "internalConsoleOptions": "openOnSessionStart",
       "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Fix Maps",
+      "program": "${workspaceFolder}/race-cancellation/scripts/fix-maps.cjs",
+      "cwd": "${workspaceFolder}/race-cancellation/",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }

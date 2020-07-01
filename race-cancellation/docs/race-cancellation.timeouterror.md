@@ -11,6 +11,7 @@ The Error interface for [withTimeout()](./race-cancellation.withtimeout.md) if t
 ```typescript
 export interface TimeoutError<TName extends string = "TimeoutError"> extends CancelError<TName> 
 ```
+<b>Extends:</b> [CancelError](./race-cancellation.cancelerror.md)<!-- -->&lt;TName&gt;
 
 ## Properties
 

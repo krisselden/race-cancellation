@@ -15,8 +15,9 @@ export default async function withCancelPending<TResult>(
   outerRaceCancel?: RaceCancelFn
 ): Promise<TResult> {
   const [raceSettled, settled] = deferCancel();
+  let result: TResult;
   try {
-    return await cancellableAsync(
+    result = await cancellableAsync(
       composeRaceCancel(raceSettled, outerRaceCancel)
     );
   } finally {
@@ -24,4 +25,5 @@ export default async function withCancelPending<TResult>(
       "The operation was cancelled because it was still pending when another concurrent promise either rejected in a Promise.all() or won in a Promise.race()."
     );
   }
+  return result;
 }

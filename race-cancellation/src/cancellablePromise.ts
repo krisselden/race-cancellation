@@ -13,8 +13,9 @@ export default async function cancellablePromise<TResult>(
   raceCancel: RaceCancelFn = noopRaceCancel
 ): Promise<TResult> {
   let dispose: DisposeFn | undefined;
+  let result: TResult;
   try {
-    return await raceCancel(
+    result = await raceCancel(
       () =>
         new Promise<TResult>((resolve, reject) => {
           dispose = disposableExecutor(resolve, reject);
@@ -25,4 +26,5 @@ export default async function cancellablePromise<TResult>(
       dispose();
     }
   }
+  return result;
 }

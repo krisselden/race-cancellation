@@ -35,8 +35,9 @@ export default async function withCancel<TResult>(
     },
     () => cancelReason
   );
+  let result: TResult;
   try {
-    return await cancellableAsync(
+    result = await cancellableAsync(
       composeRaceCancel(raceCancel, outerRaceCancel)
     );
   } finally {
@@ -44,4 +45,5 @@ export default async function withCancel<TResult>(
       dispose();
     }
   }
+  return result;
 }

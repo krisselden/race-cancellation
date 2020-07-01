@@ -37,6 +37,18 @@ module.exports = {
   },
   overrides: [
     {
+      env: {
+        node: true,
+        es6: true,
+      },
+      files: ["race-cancellation/scripts/*.cjs"],
+      rules: {
+        "no-undef": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/explicit-function-return-type": "off",
+      },
+    },
+    {
       parserOptions: {
         project: "./tsconfig.json",
         // allows eslint from any dir
