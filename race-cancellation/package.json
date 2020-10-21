@@ -1,6 +1,6 @@
 {
   "name": "race-cancellation",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Utilities for using Promise.race([task, cancellation]) for async/await code.",
   "keywords": [
     "async",
